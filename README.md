@@ -16,6 +16,7 @@
 - [`express-validator`](https://express-validator.github.io/docs/) API input validation and sanitation
 
 ### Both
+
 - [TypeScript](https://www.typescriptlang.org/) programming language
 - [Prettier](https://prettier.io/) code formatting
 
@@ -34,6 +35,19 @@ npm run dev # start dev server
 ```
 
 ### Backend
+
+Populate your `.env` file with proper values as defined in `.env.example`.
+
+If you are running in dev mode, and thus using a local postgres database rather than the cloud hosted production database, make sure Postgres is running ([setup tutorial](https://www.postgresql.org/docs/current/tutorial-install.html)) with the same configuration as defined in `.env`.
+
+Some things to watch out for:
+
+- You have a database with the same name as defined in `.env`
+- Postgres is running on the same port as defined in `.env`
+- Your username/password in `.env` corresponds to a real user and password in your database
+- Local connections are allowed (set to "trust") in [`pg_hba.conf`](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html)
+
+Start the dev server:
 
 ```sh
 cd backend  # navigate to backend directory

@@ -11,7 +11,7 @@ function validate(validations: ContextRunner[]) {
     for (const validation of validations) {
       const result = await validation.run(req);
       if (!result.isEmpty()) {
-        res.status(400).json({ errors: result.array() });
+        res.status(400).json({ error: result.array()[0].msg });
         return;
       }
     }

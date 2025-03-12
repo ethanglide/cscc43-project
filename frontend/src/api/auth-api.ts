@@ -5,7 +5,7 @@ interface RegisterUserRequest {
   password: string;
 }
 
-interface LoginUserResponse {
+export interface LoginUserResponse {
   username: string;
   accessToken: string;
   expiresIn: number;
