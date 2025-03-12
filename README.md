@@ -2,22 +2,23 @@
 
 ## Tech Stack
 
-[TypeScript](https://www.typescriptlang.org/) programming language common to both frontend and backend.
-
 ### Frontend
 
 - [React](https://react.dev/) frontend *framework*
 - [TailwindCSS](https://tailwindcss.com/) styling
 - [DaisyUI](https://daisyui.com/) component library
 - [ReactRouter](https://reactrouter.com/) routing
-- [Prettier](https://prettier.io/) code formatting
-
-> Note: Make sure to run `npm run prettier` before committing any frontend code!
 
 ### Backend
 
 - [Express](https://expressjs.com/) web server framework
 - [`postgres`](https://www.npmjs.com/package/postgres) DBMS interaction
+
+### Both
+- [TypeScript](https://www.typescriptlang.org/) programming language
+- [Prettier](https://prettier.io/) code formatting
+
+> Note: Make sure to run `npm run prettier` before committing any code!
 
 ## Getting Started
 
