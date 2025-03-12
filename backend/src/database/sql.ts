@@ -5,6 +5,7 @@ const config: Options<{}> = {
   user: environment.DB_USER,
   password: environment.DB_PASSWORD,
   host: environment.DB_HOST,
+  database: environment.DB_NAME,
 };
 
 // // If the environment is prod, use the socket path

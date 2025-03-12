@@ -13,6 +13,7 @@
 
 - [Express](https://expressjs.com/) web server framework
 - [`postgres`](https://www.npmjs.com/package/postgres) DBMS interaction
+- [`express-validator`](https://express-validator.github.io/docs/) API input validation and sanitation
 
 ### Both
 - [TypeScript](https://www.typescriptlang.org/) programming language

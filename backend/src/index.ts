@@ -1,10 +1,13 @@
 import express, { Express, Request, Response } from "express";
 import environment from "./environment";
 import authRoute from "./routes/auth";
+import cors from "cors";
+import corsOptions from "./cors-options";
 
 const app: Express = express();
 
 app.use(express.json());
+app.use(cors(corsOptions));
 
 app.use("/auth", authRoute);
 

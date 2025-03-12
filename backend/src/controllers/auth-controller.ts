@@ -12,7 +12,7 @@ export async function registerUser(req: Request, res: Response) {
   try {
     // Check if the user already exists
     const user = await getUser(username);
-    if (!user) {
+    if (user) {
       res.status(400).json({ error: "User already exists" });
       return;
     }
@@ -20,6 +20,7 @@ export async function registerUser(req: Request, res: Response) {
     // Add user to database
     const passwordHash = await hashPassword(password);
     await addUser(username, passwordHash);
+    res.json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ error: err });
   }
