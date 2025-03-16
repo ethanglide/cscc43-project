@@ -1,14 +1,21 @@
-CREATE DATABASE c43_project;
+BEGIN;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     username TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL
 );
 
-CREATE TABLE friend_requests (
+-- Create type if not exists [credits to rog on stackoverflow](https://stackoverflow.com/questions/7624919/check-if-a-user-defined-type-already-exists-in-postgresql)
+DO $$ BEGIN
+    CREATE TYPE request_status AS ENUM ('pending', 'accepted', 'rejected');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS friend_requests (
     sender TEXT NOT NULL,
     receiver TEXT NOT NULL,
-    accepted BOOLEAN NOT NULL DEFAULT FALSE,
+    status request_status NOT NULL DEFAULT 'pending',
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (sender, receiver),
     FOREIGN KEY (sender) REFERENCES users(username)
@@ -19,7 +26,7 @@ CREATE TABLE friend_requests (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE portfolios (
+CREATE TABLE IF NOT EXISTS portfolios (
     username TEXT NOT NULL,
     portfolio_name TEXT NOT NULL,
     cash REAL NOT NULL DEFAULT 0,
@@ -29,7 +36,7 @@ CREATE TABLE portfolios (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE stock_lists (
+CREATE TABLE IF NOT EXISTS stock_lists (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
     public BOOLEAN NOT NULL DEFAULT FALSE,
@@ -39,7 +46,7 @@ CREATE TABLE stock_lists (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE reviews (
+CREATE TABLE IF NOT EXISTS reviews (
     owner_username TEXT NOT NULL,
     list_name TEXT NOT NULL,
     reviewer_username TEXT NOT NULL,
@@ -48,14 +55,14 @@ CREATE TABLE reviews (
     PRIMARY KEY (owner_username, list_name, reviewer_username),
     FOREIGN KEY (owner_username, list_name) REFERENCES stock_lists(username, list_name)
         ON DELETE CASCADE
-        ON UPDATE CASCADE,
+        ON UPDATE CASCADE
 );
 
-CREATE TABLE stocks (
-    symbol TEXT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS stocks (
+    symbol TEXT PRIMARY KEY
 );
 
-CREATE TABLE stock_history (
+CREATE TABLE IF NOT EXISTS stock_history (
     symbol VARCHAR(5) NOT NULL,
     timestamp DATE NOT NULL,
     open REAL NOT NULL,
@@ -69,7 +76,7 @@ CREATE TABLE stock_history (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE stock_list_stocks (
+CREATE TABLE IF NOT EXISTS stock_list_stocks (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
     symbol TEXT NOT NULL,
@@ -83,7 +90,7 @@ CREATE TABLE stock_list_stocks (
         ON UPDATE CASCADE
 );
 
-CREATE TABLE portfolio_stocks (
+CREATE TABLE IF NOT EXISTS portfolio_stocks (
     username TEXT NOT NULL,
     portfolio_name TEXT NOT NULL,
     symbol TEXT NOT NULL,
@@ -96,3 +103,5 @@ CREATE TABLE portfolio_stocks (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+
+COMMIT;
