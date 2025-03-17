@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { UsersApi } from "../api/users-api";
+import { Link } from "react-router";
 
 export default function Home() {
   const [users, setUsers] = useState<string[]>([]);
@@ -35,6 +36,12 @@ export default function Home() {
           <li key={user}>{user}</li>
         ))}
       </ul>
+      <Link
+        to="/stock-lists"
+        className="btn btn-secondary"
+      >
+        My Stock Lists
+      </Link>
     </div>
   );
 }
