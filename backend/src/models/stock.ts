@@ -1,3 +1,3 @@
 export interface Stock {
-    symbol: string;
+  symbol: string;
 }

@@ -36,10 +36,7 @@ export default function Home() {
           <li key={user}>{user}</li>
         ))}
       </ul>
-      <Link
-        to="/stock-lists"
-        className="btn btn-secondary"
-      >
+      <Link to="/stock-lists" className="btn btn-secondary">
         My Stock Lists
       </Link>
     </div>

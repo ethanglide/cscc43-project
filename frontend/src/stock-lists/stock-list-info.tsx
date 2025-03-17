@@ -1,21 +1,32 @@
 import { FormEvent, useContext, useEffect, useState } from "react";
-import StockListsApi, { StockListsResponse, StockListStockResponse } from "../api/stock-lists-api";
+import StockListsApi, {
+  StockListsResponse,
+  StockListStockResponse,
+} from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StocksApi, { StockResponse } from "../api/stocks-api";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import Modal from "../components/modal";
 
-export default function StockListInfo({ stockList }: { stockList: StockListsResponse }) {
+export default function StockListInfo({
+  stockList,
+}: {
+  stockList: StockListsResponse;
+}) {
   const { user } = useContext(UserContext);
   const [allStocks, setAllStocks] = useState<StockResponse[]>([]);
-  const [stockListStocks, setStockListStocks] = useState<StockListStockResponse[]>([]);
+  const [stockListStocks, setStockListStocks] = useState<
+    StockListStockResponse[]
+  >([]);
   const [newStockSymbol, setNewStockSymbol] = useState("");
   const [newStockAmount, setNewStockAmount] = useState(1);
   const [newStockLoading, setNewStockLoading] = useState(false);
   const [newStockError, setNewStockError] = useState("");
 
   const modalId = "add-stock-modal";
-  const filteredStocks = allStocks.filter((stock) => stock.symbol.startsWith(newStockSymbol));
+  const filteredStocks = allStocks.filter((stock) =>
+    stock.symbol.startsWith(newStockSymbol),
+  );
 
   async function getAllStocks() {
     const response = await StocksApi.getStocks();
@@ -33,7 +44,10 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
       return;
     }
 
-    const response = await StockListsApi.getStockListStocks(user.username, stockList.list_name);
+    const response = await StockListsApi.getStockListStocks(
+      user.username,
+      stockList.list_name,
+    );
 
     if ("error" in response) {
       console.log(response.error);
@@ -50,7 +64,12 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
 
     setNewStockLoading(true);
 
-    const response = await StockListsApi.addStockToList(user.accessToken, stockList.list_name, newStockSymbol, newStockAmount);
+    const response = await StockListsApi.addStockToList(
+      user.accessToken,
+      stockList.list_name,
+      newStockSymbol,
+      newStockAmount,
+    );
 
     setNewStockLoading(false);
 
@@ -61,15 +80,20 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
 
     // Either add the stock to the list or update the amount
     if (!stockListStocks.find((stock) => stock.symbol === newStockSymbol)) {
-      setStockListStocks([...stockListStocks, { symbol: newStockSymbol, amount: newStockAmount }]);
+      setStockListStocks([
+        ...stockListStocks,
+        { symbol: newStockSymbol, amount: newStockAmount },
+      ]);
     } else {
-      setStockListStocks(stockListStocks.map((stock) => {
-        if (stock.symbol === newStockSymbol) {
-          return { ...stock, amount: newStockAmount };
-        }
+      setStockListStocks(
+        stockListStocks.map((stock) => {
+          if (stock.symbol === newStockSymbol) {
+            return { ...stock, amount: newStockAmount };
+          }
 
-        return stock;
-      }));
+          return stock;
+        }),
+      );
     }
 
     setNewStockError("");
@@ -87,20 +111,29 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
       return;
     }
 
-    const response = await StockListsApi.removeStockFromList(user.accessToken, stockList.list_name, symbol);
+    const response = await StockListsApi.removeStockFromList(
+      user.accessToken,
+      stockList.list_name,
+      symbol,
+    );
 
     if ("error" in response) {
       console.log(response.error);
       return;
     }
 
-    setStockListStocks(stockListStocks.filter((stock) => stock.symbol !== symbol));
+    setStockListStocks(
+      stockListStocks.filter((stock) => stock.symbol !== symbol),
+    );
   }
 
   function handleSetNewStockSymbol(symbol: string) {
     const newSymbol = symbol.toUpperCase();
     setNewStockSymbol(newSymbol);
-    setNewStockAmount(stockListStocks.find((stock) => stock.symbol === newSymbol)?.amount || newStockAmount);
+    setNewStockAmount(
+      stockListStocks.find((stock) => stock.symbol === newSymbol)?.amount ||
+        newStockAmount,
+    );
   }
 
   useEffect(() => {
@@ -115,14 +148,17 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
     <div className="flex flex-col gap-4">
       <div className="flex gap-4 items-center">
         <h2 className="text-3xl font-bold">{stockList.list_name}</h2>
-        {stockList.public ?
-          <div className="badge badge-success">Public</div> :
+        {stockList.public ? (
+          <div className="badge badge-success">Public</div>
+        ) : (
           <div className="badge badge-error">Private</div>
-        }
+        )}
       </div>
       <div className="flex gap-4 items-center">
         <h3 className="text-xl font-bold">{stockList.username}</h3>
-        {user && user.username === stockList.username && <div className="badge badge-primary">You</div>}
+        {user && user.username === stockList.username && (
+          <div className="badge badge-primary">You</div>
+        )}
       </div>
       <div className="overflow-x-hidden rounded-lg shadow-lg max-h-96">
         <table className="table table-pin-rows">
@@ -133,7 +169,9 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
               <th className="text-end">
                 <button
                   onClick={() => {
-                    const modal = document.getElementById(modalId) as HTMLDialogElement;
+                    const modal = document.getElementById(
+                      modalId,
+                    ) as HTMLDialogElement;
                     modal.showModal();
                   }}
                   className="btn btn-success btn-circle"
@@ -145,10 +183,7 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
           </thead>
           <tbody>
             {stockListStocks.map((stock) => (
-              <tr
-                key={stock.symbol}
-                className="hover:bg-base-200"
-              >
+              <tr key={stock.symbol} className="hover:bg-base-200">
                 <td>{stock.symbol}</td>
                 <td>{stock.amount}</td>
                 <td className="text-end">
@@ -166,10 +201,7 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
       </div>
       <Modal id={modalId}>
         <h2 className="text-xl font-bold">Add Stock</h2>
-        <form
-          onSubmit={handleAddStock}
-          className="flex flex-col gap-4"
-        >
+        <form onSubmit={handleAddStock} className="flex flex-col gap-4">
           <div className="flex items-center gap-6">
             <fieldset className="fieldset flex-grow dropdown dropdown-bottom">
               <legend className="fieldset-legend">Stock List Name</legend>
@@ -186,14 +218,16 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
                 tabIndex={0}
                 className="dropdown-content block menu bg-base-200 rounded-box z-1 p-2 shadow max-h-20 overflow-y-auto"
               >
-                {filteredStocks.map((stock) =>
+                {filteredStocks.map((stock) => (
                   <li
                     key={stock.symbol}
                     onClick={() => handleSetNewStockSymbol(stock.symbol)}
                   >
-                    <a onClick={(e) => e.currentTarget.blur()}>{stock.symbol}</a>
+                    <a onClick={(e) => e.currentTarget.blur()}>
+                      {stock.symbol}
+                    </a>
                   </li>
-                )}
+                ))}
               </ul>
             </fieldset>
             <fieldset className="fieldset w-1/4">
@@ -209,13 +243,12 @@ export default function StockListInfo({ stockList }: { stockList: StockListsResp
               />
             </fieldset>
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary"
-          >
+          <button type="submit" className="btn btn-primary">
             {newStockLoading ? "Adding..." : "Add Stock"}
           </button>
-          {newStockError && <p className="text-error text-center">{newStockError}</p>}
+          {newStockError && (
+            <p className="text-error text-center">{newStockError}</p>
+          )}
         </form>
       </Modal>
     </div>
