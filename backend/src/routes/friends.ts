@@ -9,8 +9,6 @@ router.get("/", FriendsValidator.getFriends, FriendsController.getFriends);
 
 router.get("/incoming", authenticate, FriendsController.getIncomingRequests);
 
-router.get("/rejected", authenticate, FriendsController.getRejectedRequests);
-
 router.get("/outgoing", authenticate, FriendsController.getOutgoingRequests);
 
 router.post(

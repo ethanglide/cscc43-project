@@ -27,17 +27,6 @@ export default class FriendsController {
     }
   }
 
-  static async getRejectedRequests(req: Request, res: Response) {
-    const username = res.locals.tokenData.username;
-
-    try {
-      const requests = await FriendData.getRejectedRequests(username);
-      res.json(requests);
-    } catch (err) {
-      res.status(500).json({ error: err });
-    }
-  }
-
   static async getOutgoingRequests(req: Request, res: Response) {
     const username = res.locals.tokenData.username;
 
@@ -57,6 +46,7 @@ export default class FriendsController {
       await FriendData.sendFriendRequest(sender, receiver);
       res.json({ message: "Friend request sent" });
     } catch (err) {
+      console.log(err);
       res.status(500).json({ error: err });
     }
   }
@@ -87,10 +77,10 @@ export default class FriendsController {
 
   static async deleteFriendRequest(req: Request, res: Response) {
     const username = res.locals.tokenData.username;
-    const { receiver } = req.body;
+    const { friend } = req.body;
 
     try {
-      await FriendData.deleteFriendRequest(username, receiver);
+      await FriendData.deleteFriendRequest(username, friend);
       res.json({ message: "Friend removed" });
     } catch (err) {
       res.status(500).json({ error: err });

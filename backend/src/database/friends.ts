@@ -45,24 +45,7 @@ export default class FriendData {
             FROM
                 friend_requests
             WHERE
-                receiver = ${username} AND status = ${RequestStatus.pending}
-        `;
-
-    return requests;
-  }
-
-  /**
-   * Get all rejected friend requests sent by a user
-   * @param username the username of the user
-   * @returns the rejected friend requests
-   */
-  static async getRejectedRequests(username: string) {
-    const requests = await sql<FriendRequest[]>`
-            SELECT
-                sender, receiver, status, timestamp
-            FROM friend_requests
-            WHERE
-                sender = ${username} AND status = ${RequestStatus.rejected}
+                receiver = ${username}
         `;
 
     return requests;
@@ -79,7 +62,7 @@ export default class FriendData {
                 sender, receiver, status, timestamp
             FROM friend_requests
             WHERE
-                sender = ${username} AND status = ${RequestStatus.pending}
+                sender = ${username}
         `;
 
     return requests;
@@ -91,41 +74,6 @@ export default class FriendData {
    * @param receiver the receiver of the friend request
    */
   static async sendFriendRequest(sender: string, receiver: string) {
-    // If the request already exists and is rejected,
-    // it can be resent if it has passed the cooldown period
-    const existingRequest = await sql<FriendRequest[]>`
-            SELECT sender, receiver, status, timestamp
-            FROM friend_requests
-            WHERE
-                sender = ${sender} AND receiver = ${receiver}
-        `;
-
-    if (existingRequest.length > 0) {
-      if (existingRequest[0].status === RequestStatus.rejected) {
-        const timestamp = existingRequest[0].timestamp;
-        const now = Date.now();
-        if (now - timestamp < FriendData._resendCooldown) {
-          throw new Error(
-            "Friend request has been rejected and cannot be resent yet",
-          );
-        }
-
-        // Resend the friend request
-        await sql`
-                    UPDATE friend_requests
-                    SET
-                        status = ${RequestStatus.pending}, timestamp = NOW()
-                    WHERE
-                        sender = ${sender} AND receiver = ${receiver}
-                `;
-
-        return;
-      } else {
-        throw new Error("Friend request already exists");
-      }
-    }
-
-    // Create a new friend request
     await sql`
             INSERT INTO friend_requests
                 (sender, receiver, status, timestamp)
@@ -164,14 +112,16 @@ export default class FriendData {
 
   /**
    * Delete a friend request
-   * @param sender the sender of the friend request
-   * @param receiver the receiver of the friend request
+   * @param friend1 one of the users in the friend request
+   * @param friend2 the other user in the friend request
    */
-  static async deleteFriendRequest(sender: string, receiver: string) {
+  static async deleteFriendRequest(friend1: string, friend2: string) {
     await sql`
             DELETE FROM friend_requests
             WHERE
-                sender = ${sender} AND receiver = ${receiver}
+                (sender = ${friend1} AND receiver = ${friend2})
+                OR
+                (sender = ${friend2} AND receiver = ${friend1})
         `;
   }
 }

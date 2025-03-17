@@ -14,7 +14,6 @@ export interface LoginUserResponse {
 export class AuthApi {
   static async registerUser(user: RegisterUserRequest) {
     const response = await HttpClient.post("/auth/register", user);
-
     const data = await response.json();
 
     if (!response.ok) {
@@ -26,7 +25,6 @@ export class AuthApi {
 
   static async loginUser(user: RegisterUserRequest) {
     const response = await HttpClient.post("/auth/login", user);
-
     const data = await response.json();
 
     if (!response.ok) {

@@ -1,9 +1,9 @@
-import { body, param } from "express-validator";
+import { body, query } from "express-validator";
 import validate from "../utils/validate";
 
 export default class FriendsValidator {
   static getFriends = validate([
-    param("username").trim().notEmpty().escape().isString(),
+    query("username").trim().notEmpty().escape().isString(),
   ]);
 
   static sendFriendRequest = validate([
@@ -19,6 +19,6 @@ export default class FriendsValidator {
   ]);
 
   static deleteFriendRequest = validate([
-    body("receiver").trim().notEmpty().escape().isString(),
+    body("friend").trim().notEmpty().escape().isString(),
   ]);
 }

@@ -1,8 +1,8 @@
 import { FormEvent, useContext, useState } from "react";
 import { UserContext } from "../context/user-context";
-import { FiX } from "react-icons/fi";
 import { AuthApi } from "../api/auth-api";
 import { useNavigate } from "react-router";
+import Modal from "./modal";
 
 export default function ProfilePreview() {
   const { user } = useContext(UserContext);
@@ -50,40 +50,29 @@ function SignInButton() {
       >
         Sign In
       </button>
-      <dialog id={modalId} className="modal">
-        <div className="modal-box">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-              <FiX />
-            </button>
-          </form>
-          <div className="tabs tabs-border tabs-lg">
-            <input
-              type="radio"
-              name={tabRadioName}
-              className="tab"
-              aria-label="Sign In"
-              defaultChecked
-            />
-            <div className="tab-content">
-              <SignInForm purpose="sign-in" />
-            </div>
-
-            <input
-              type="radio"
-              name={tabRadioName}
-              className="tab"
-              aria-label="Register"
-            />
-            <div className="tab-content">
-              <SignInForm purpose="register" />
-            </div>
+      <Modal id={modalId}>
+        <div className="tabs tabs-border tabs-lg">
+          <input
+            type="radio"
+            name={tabRadioName}
+            className="tab"
+            aria-label="Sign In"
+            defaultChecked
+          />
+          <div className="tab-content">
+            <SignInForm purpose="sign-in" />
+          </div>
+          <input
+            type="radio"
+            name={tabRadioName}
+            className="tab"
+            aria-label="Register"
+          />
+          <div className="tab-content">
+            <SignInForm purpose="register" />
           </div>
         </div>
-        <form method="dialog" className="modal-backdrop">
-          <button></button>
-        </form>
-      </dialog>
+      </Modal>
     </>
   );
 }

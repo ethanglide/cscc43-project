@@ -23,8 +23,61 @@ CREATE TABLE IF NOT EXISTS friend_requests (
         ON UPDATE CASCADE,
     FOREIGN KEY (receiver) REFERENCES users(username)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CHECK (sender != receiver)
 );
+
+-- Not allowed to send a friend request to someone who has already sent you a friend request
+CREATE OR REPLACE FUNCTION prevent_friend_request_cycle()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM friend_requests 
+        WHERE sender = NEW.receiver AND receiver = NEW.sender
+    ) THEN
+        RAISE EXCEPTION 'A friend request from % to % already exists', NEW.receiver, NEW.sender;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER friend_request_no_cycle
+BEFORE INSERT ON friend_requests
+FOR EACH ROW
+EXECUTE FUNCTION prevent_friend_request_cycle();
+
+-- Resend a friend request if the previous one was rejected and is at least 5 minutes old
+CREATE OR REPLACE FUNCTION handle_resend_friend_request()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM friend_requests 
+        WHERE 1 = 1
+            AND sender = NEW.sender 
+            AND receiver = NEW.receiver 
+            AND status = 'rejected' 
+            AND timestamp <= NOW() - INTERVAL '5 MINUTES'
+    ) THEN
+        UPDATE friend_requests 
+        SET
+            status = 'pending', timestamp = CURRENT_TIMESTAMP 
+        WHERE 1 = 1
+            AND sender = NEW.sender 
+            AND receiver = NEW.receiver;
+        
+        -- Prevent the new row from being inserted
+        RETURN NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_resend_friend_request
+BEFORE INSERT ON friend_requests
+FOR EACH ROW
+EXECUTE FUNCTION handle_resend_friend_request();
 
 CREATE TABLE IF NOT EXISTS portfolios (
     username TEXT NOT NULL,
