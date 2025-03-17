@@ -47,10 +47,31 @@ Some things to watch out for:
 - Your username/password in `.env` corresponds to a real user and password in your database
 - Local connections are allowed (set to "trust") in [`pg_hba.conf`](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html)
 
+Start the postgres server:
+
+```sh
+sudo systemctl start postgresql.service # or any other equivalent command
+```
+
+Load in the schema (make sure that `c43_project` is a database in your postgres server):
+
+```sh
+# in /backend
+psql -U postgres -d c43_project -f sql/schema.sql
+```
+
+Download the historical data from quercus, then load it in:
+
+```sh
+# in /backend
+sudo chmod +x ./sql/load-stock-data.sh # if needed
+./sql/load-stock-data.sh /path/to/data.csv
+```
+
 Start the dev server:
 
 ```sh
-cd backend  # navigate to backend directory
+# in /backend
 npm install # install dependencies
 npm run dev # start dev server
 ```

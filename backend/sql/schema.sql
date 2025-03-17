@@ -115,14 +115,15 @@ CREATE TABLE IF NOT EXISTS stocks (
     symbol TEXT PRIMARY KEY
 );
 
+-- Some stocks may not have all the data, hence why some columns are nullable
 CREATE TABLE IF NOT EXISTS stock_history (
     symbol VARCHAR(5) NOT NULL,
     timestamp DATE NOT NULL,
-    open REAL NOT NULL,
-    high REAL NOT NULL,
-    low REAL NOT NULL,
-    close REAL NOT NULL,
-    volume INTEGER NOT NULL,
+    open REAL,
+    high REAL,
+    low REAL,
+    close REAL,
+    volume INTEGER,
     PRIMARY KEY (symbol, timestamp),
     FOREIGN KEY (symbol) REFERENCES stocks(symbol)
         ON DELETE CASCADE
@@ -140,7 +141,8 @@ CREATE TABLE IF NOT EXISTS stock_list_stocks (
         ON UPDATE CASCADE,
     FOREIGN KEY (symbol) REFERENCES stocks(symbol)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CHECK (amount > 0)
 );
 
 CREATE TABLE IF NOT EXISTS portfolio_stocks (
@@ -154,7 +156,8 @@ CREATE TABLE IF NOT EXISTS portfolio_stocks (
         ON UPDATE CASCADE,
     FOREIGN KEY (symbol) REFERENCES stocks(symbol)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CHECK (amount > 0)
 );
 
 COMMIT;

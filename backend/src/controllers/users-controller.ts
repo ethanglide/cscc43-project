@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import UserData from "../database/users";
 
 /**
- * Controller for the users routes
+ * Controller for the users route
  */
 export default class UsersController {
   /**

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import FriendData from "../database/friends";
 
 /**
- * Controller for the friends routes
+ * Controller for the friends route
  */
 export default class FriendsController {
   static async getFriends(req: Request, res: Response) {
