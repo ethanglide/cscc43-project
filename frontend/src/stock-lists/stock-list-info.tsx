@@ -23,6 +23,7 @@ export default function StockListInfo({
   const [newStockLoading, setNewStockLoading] = useState(false);
   const [newStockError, setNewStockError] = useState("");
 
+  const isOwner = user && user.username === stockList.username;
   const modalId = "add-stock-modal";
   const filteredStocks = allStocks.filter((stock) =>
     stock.symbol.startsWith(newStockSymbol),
@@ -40,12 +41,8 @@ export default function StockListInfo({
   }
 
   async function getStockListStocks() {
-    if (!user) {
-      return;
-    }
-
     const response = await StockListsApi.getStockListStocks(
-      user.username,
+      stockList.username,
       stockList.list_name,
     );
 
@@ -167,17 +164,19 @@ export default function StockListInfo({
               <th>Symbol</th>
               <th>Amount</th>
               <th className="text-end">
-                <button
-                  onClick={() => {
-                    const modal = document.getElementById(
-                      modalId,
-                    ) as HTMLDialogElement;
-                    modal.showModal();
-                  }}
-                  className="btn btn-success btn-circle"
-                >
-                  <FiPlus className="w-6 h-6" />
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => {
+                      const modal = document.getElementById(
+                        modalId,
+                      ) as HTMLDialogElement;
+                      modal.showModal();
+                    }}
+                    className="btn btn-success btn-circle"
+                  >
+                    <FiPlus className="w-6 h-6" />
+                  </button>
+                )}
               </th>
             </tr>
           </thead>
@@ -187,12 +186,14 @@ export default function StockListInfo({
                 <td>{stock.symbol}</td>
                 <td>{stock.amount}</td>
                 <td className="text-end">
-                  <button
-                    onClick={() => removeStock(stock.symbol)}
-                    className="btn btn-error btn-circle"
-                  >
-                    <FiMinus className="w-6 h-6" />
-                  </button>
+                  {isOwner && (
+                    <button
+                      onClick={() => removeStock(stock.symbol)}
+                      className="btn btn-error btn-circle"
+                    >
+                      <FiMinus className="w-6 h-6" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

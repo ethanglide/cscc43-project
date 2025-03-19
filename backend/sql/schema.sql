@@ -103,12 +103,16 @@ CREATE TABLE IF NOT EXISTS reviews (
     owner_username TEXT NOT NULL,
     list_name TEXT NOT NULL,
     reviewer_username TEXT NOT NULL,
-    review VARCHAR(4000), -- frontend will only show review if not empty
+    review VARCHAR(4000) NOT NULL DEFAULT '', -- frontend will only show review if not empty
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 10) DEFAULT 5,
     PRIMARY KEY (owner_username, list_name, reviewer_username),
     FOREIGN KEY (owner_username, list_name) REFERENCES stock_lists(username, list_name)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (reviewer_username) REFERENCES users(username)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CHECK (owner_username != reviewer_username)
 );
 
 CREATE TABLE IF NOT EXISTS stocks (

@@ -84,4 +84,64 @@ export default class StockListController {
       res.status(500).json({ error: err });
     }
   }
+
+  static async getPublicStockLists(req: Request, res: Response) {
+    try {
+      const stockLists = await StockListData.getPublicStockLists();
+      res.json(stockLists);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async getSharedStockLists(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+
+    try {
+      const stockLists = await StockListData.getSharedStockLists(username);
+      res.json(stockLists);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async shareStockList(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, reviewer } = req.body;
+
+    try {
+      await StockListData.createOrUpdateReview(username, listName, reviewer);
+      res.json({ message: "Stock list shared" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async unshareStockList(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, reviewer } = req.body;
+
+    try {
+      await StockListData.removeReview(username, listName, reviewer);
+      res.json({ message: "Stock list unshared" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async getStockListReviews(req: Request, res: Response) {
+    const requester = res.locals.tokenData.username;
+    const { username, listName } = req.query;
+
+    try {
+      const reviews = await StockListData.getReviews(
+        username as string,
+        listName as string,
+        requester,
+      );
+      res.json(reviews);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
 }

@@ -39,6 +39,9 @@ export default function Home() {
       <Link to="/stock-lists" className="btn btn-secondary">
         My Stock Lists
       </Link>
+      <Link to="/browse" className="btn btn-secondary">
+        Browse Stock Lists
+      </Link>
     </div>
   );
 }

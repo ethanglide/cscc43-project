@@ -11,6 +11,14 @@ export interface StockListStockResponse {
   amount: number;
 }
 
+export interface ReviewResponse {
+  owner_username: string;
+  list_name: string;
+  reviewer_username: string;
+  review: string;
+  rating: number;
+}
+
 export default class StockListsApi {
   static async getStockLists(username: string) {
     const response = await HttpClient.get(`/stock-lists?username=${username}`);
@@ -21,6 +29,46 @@ export default class StockListsApi {
     }
 
     return data as StockListsResponse[];
+  }
+
+  static async getPublicStockLists() {
+    const response = await HttpClient.get("/stock-lists/public");
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as StockListsResponse[];
+  }
+
+  static async getSharedStockLists(token: string) {
+    const response = await HttpClient.get("/stock-lists/shared", token);
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as StockListsResponse[];
+  }
+
+  static async getStockListReviews(
+    token: string,
+    username: string,
+    listName: string,
+  ) {
+    const response = await HttpClient.get(
+      `/stock-lists/reviews?username=${username}&listName=${listName}`,
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as ReviewResponse[];
   }
 
   static async getStockListStocks(username: string, listName: string) {
@@ -59,6 +107,44 @@ export default class StockListsApi {
     const response = await HttpClient.post(
       "/stock-lists/delete",
       { listName },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async shareStockList(
+    token: string,
+    listName: string,
+    reviewer: string,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/share",
+      { listName, reviewer },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async unshareStockList(
+    token: string,
+    listName: string,
+    reviewer: string,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/unshare",
+      { listName, reviewer },
       token,
     );
     const data = await response.json();

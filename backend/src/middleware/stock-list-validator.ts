@@ -30,4 +30,23 @@ export default class StockListValidator {
     body("listName").trim().notEmpty().escape().isString(),
     body("symbol").trim().notEmpty().escape().isString(),
   ]);
+
+  static getPublicStockLists = validate([]);
+
+  static getSharedStockLists = validate([]);
+
+  static shareStockList = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("reviewer").trim().notEmpty().escape().isString(),
+  ]);
+
+  static unshareStockList = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("reviewer").trim().notEmpty().escape().isString(),
+  ]);
+
+  static getStockListReviews = validate([
+    query("username").trim().notEmpty().escape().isString(),
+    query("listName").trim().notEmpty().escape().isString(),
+  ]);
 }

@@ -56,16 +56,16 @@ sudo systemctl start postgresql.service # or any other equivalent command
 Load in the schema (make sure that `c43_project` is a database in your postgres server):
 
 ```sh
-# in /backend
-psql -U postgres -d c43_project -f sql/schema.sql
+# in /backend/sql
+psql -U postgres -d c43_project -f schema.sql
 ```
 
 Download the historical data from quercus, then load it in:
 
 ```sh
-# in /backend
-sudo chmod +x ./sql/load-stock-data.sh # if needed
-./sql/load-stock-data.sh /path/to/data.csv
+# in /backend/sql
+sudo chmod +x load-stock-data.sh # if needed
+./load-stock-data.sh /path/to/data.csv
 ```
 
 Start the dev server:

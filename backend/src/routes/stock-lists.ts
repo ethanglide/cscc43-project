@@ -12,6 +12,26 @@ router.get(
 );
 
 router.get(
+  "/public",
+  StockListValidator.getPublicStockLists,
+  StockListController.getPublicStockLists,
+);
+
+router.get(
+  "/shared",
+  authenticate,
+  StockListValidator.getSharedStockLists,
+  StockListController.getSharedStockLists,
+);
+
+router.get(
+  "/reviews",
+  authenticate,
+  StockListValidator.getStockListReviews,
+  StockListController.getStockListReviews,
+);
+
+router.get(
   "/stocks",
   StockListValidator.getStockListStocks,
   StockListController.getStockListStocks,
@@ -29,6 +49,20 @@ router.post(
   authenticate,
   StockListValidator.deleteStockList,
   StockListController.deleteStockList,
+);
+
+router.post(
+  "/share",
+  authenticate,
+  StockListValidator.shareStockList,
+  StockListController.shareStockList,
+);
+
+router.post(
+  "/unshare",
+  authenticate,
+  StockListValidator.unshareStockList,
+  StockListController.unshareStockList,
 );
 
 router.post(

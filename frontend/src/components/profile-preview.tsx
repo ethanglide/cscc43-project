@@ -39,6 +39,11 @@ function SignInButton() {
   const modalId = "sign-in-modal";
   const tabRadioName = "sign-in-tab";
 
+  function closeModal() {
+    const modal = document.getElementById(modalId) as HTMLDialogElement;
+    modal.close();
+  }
+
   return (
     <>
       <button
@@ -60,7 +65,7 @@ function SignInButton() {
             defaultChecked
           />
           <div className="tab-content">
-            <SignInForm purpose="sign-in" />
+            <SignInForm purpose="sign-in" closeModal={closeModal} />
           </div>
           <input
             type="radio"
@@ -69,7 +74,7 @@ function SignInButton() {
             aria-label="Register"
           />
           <div className="tab-content">
-            <SignInForm purpose="register" />
+            <SignInForm purpose="register" closeModal={closeModal} />
           </div>
         </div>
       </Modal>
@@ -79,10 +84,10 @@ function SignInButton() {
 
 interface SignInFormProps {
   purpose: "sign-in" | "register";
+  closeModal: () => void;
 }
 
-function SignInForm({ purpose }: SignInFormProps) {
-  const navigate = useNavigate();
+function SignInForm({ purpose, closeModal }: SignInFormProps) {
   const { setUser } = useContext(UserContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -100,7 +105,7 @@ function SignInForm({ purpose }: SignInFormProps) {
 
     setUser(response);
     setResponseMessage("Signed in successfully");
-    navigate("/");
+    closeModal();
   }
 
   async function register() {

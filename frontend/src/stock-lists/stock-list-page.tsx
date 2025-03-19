@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 import StockListInfo from "./stock-list-info";
 import Modal from "../components/modal";
+import ShareStockListButton from "./share-stock-list-button";
 
 export default function StockListPage() {
   const { user } = useContext(UserContext);
@@ -166,6 +167,13 @@ export default function StockListPage() {
               <FiTrash2 />
             </button>
           )}
+          {selectedIndex !== null &&
+            stockLists[selectedIndex] &&
+            !stockLists[selectedIndex].public && (
+              <ShareStockListButton
+                listName={stockLists[selectedIndex].list_name}
+              />
+            )}
         </div>
         <button
           onClick={() => {
