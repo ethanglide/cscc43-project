@@ -194,4 +194,44 @@ export default class StockListsApi {
 
     return data as MessageResponse;
   }
+
+  static async editReview(
+    token: string,
+    ownerUsername: string,
+    listName: string,
+    review: string,
+    rating: number,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/edit-review",
+      { ownerUsername, listName, review, rating },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async removeReview(
+    token: string,
+    listName: string,
+    reviewerUsername: string,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/remove-review",
+      { listName, reviewerUsername },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
 }

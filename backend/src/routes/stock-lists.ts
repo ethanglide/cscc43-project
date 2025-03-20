@@ -79,4 +79,18 @@ router.post(
   StockListController.removeStockFromList,
 );
 
+router.post(
+  "/edit-review",
+  authenticate,
+  StockListValidator.editReview,
+  StockListController.editReview,
+);
+
+router.post(
+  "/remove-review",
+  authenticate,
+  StockListValidator.removeReview,
+  StockListController.removeReview,
+);
+
 export default router;
