@@ -144,4 +144,29 @@ export default class StockListController {
       res.status(500).json({ error: err });
     }
   }
+
+  static async editReview(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { ownerUsername, listName, review, rating } = req.body;
+
+    try {
+      await StockListData.createOrUpdateReview(ownerUsername, listName, username, review, rating);
+      res.json({ message: "Review updated" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async removeReview(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, reviewerUsername } = req.body;
+
+    try {
+      // When you set a review to an empty string, it will not show on frontend
+      await StockListData.createOrUpdateReview(username, listName, reviewerUsername, "", 5);
+      res.json({ message: "Review removed" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
 }

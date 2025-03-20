@@ -187,7 +187,8 @@ export default class StockListData {
             FROM reviews JOIN stock_lists ON 1 = 1
                 AND reviews.owner_username = stock_lists.username
                 AND reviews.list_name = stock_lists.list_name
-            WHERE reviewer_username = ${username}
+            WHERE
+              reviewer_username = ${username} AND public = FALSE
         `;
   }
 

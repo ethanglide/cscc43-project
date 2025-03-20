@@ -49,4 +49,16 @@ export default class StockListValidator {
     query("username").trim().notEmpty().escape().isString(),
     query("listName").trim().notEmpty().escape().isString(),
   ]);
+
+  static editReview = validate([
+    body("ownerUsername").trim().notEmpty().escape().isString(),
+    body("listName").trim().notEmpty().escape().isString(),
+    body("review").trim().escape().isString(), // can set review to empty to make it not show on frontend
+    body("rating").isNumeric(),
+  ]);
+
+  static removeReview = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("reviewerUsername").trim().notEmpty().escape().isString(),
+  ]);
 }

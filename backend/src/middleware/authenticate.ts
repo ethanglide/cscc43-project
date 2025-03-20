@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { getAccessTokenData, isAccessTokenValid } from "../utils/access-tokens";
+import { getAccessTokenData } from "../utils/access-tokens";
 import UserData from "../database/users";
 
 async function authenticate(req: Request, res: Response, next: NextFunction) {
