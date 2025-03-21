@@ -134,6 +134,17 @@ CREATE TABLE IF NOT EXISTS stock_history (
         ON UPDATE CASCADE
 );
 
+CREATE VIEW stock_CV AS 
+    SELECT
+        symbol, 
+        (STDDEV(close) / AVG(close)) * 100 AS CV
+    FROM
+        stock_history
+    GROUP BY 
+        symbol
+    HAVING 
+        count(close) > 0;
+
 CREATE TABLE IF NOT EXISTS stock_list_stocks (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
