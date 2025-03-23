@@ -1,5 +1,10 @@
 import { Review } from "../models/review";
-import { Portfolio, StockList, StockListStock, StockListType } from "../models/stock-list";
+import {
+  Portfolio,
+  StockList,
+  StockListStock,
+  StockListType,
+} from "../models/stock-list";
 import sql from "./sql";
 
 /**
@@ -63,7 +68,9 @@ export default class StockListData {
     listName: string,
     isPublic: boolean,
   ) {
-    const stockListType = isPublic ? StockListType.public : StockListType.private;
+    const stockListType = isPublic
+      ? StockListType.public
+      : StockListType.private;
     await sql`
             INSERT INTO stock_lists (username, list_name, list_type)
             VALUES (${username}, ${listName}, ${stockListType})

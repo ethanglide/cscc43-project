@@ -1,6 +1,9 @@
 import { FormEvent, useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/user-context";
-import StockListsApi, { StockListsResponse, StockListType } from "../api/stock-lists-api";
+import StockListsApi, {
+  StockListsResponse,
+  StockListType,
+} from "../api/stock-lists-api";
 import {
   FiAlertCircle,
   FiChevronDown,
@@ -40,7 +43,7 @@ export default function StockListPage() {
     setNewListLoading(false);
 
     if ("error" in response) {
-      setNewListError(response.error);
+      setNewListError("Error creating stock list");
       return;
     }
 
