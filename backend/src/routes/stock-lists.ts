@@ -12,6 +12,13 @@ router.get(
 );
 
 router.get(
+  "/portfolios",
+  authenticate,
+  StockListValidator.getPortfolios,
+  StockListController.getPortfolios,
+);
+
+router.get(
   "/public",
   StockListValidator.getPublicStockLists,
   StockListController.getPublicStockLists,
@@ -42,6 +49,13 @@ router.post(
   authenticate,
   StockListValidator.createStockList,
   StockListController.createStockList,
+);
+
+router.post(
+  "/create-portfolio",
+  authenticate,
+  StockListValidator.createPortfolio,
+  StockListController.createPortfolio,
 );
 
 router.post(

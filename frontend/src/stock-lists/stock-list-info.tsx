@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import {
   StockListsResponse,
+  StockListType,
 } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StockListStocks from "./stock-list-stocks";
@@ -18,7 +19,7 @@ export default function StockListInfo({
     <div className="flex flex-col gap-4">
       <div className="flex gap-4 items-center">
         <h2 className="text-3xl font-bold">{stockList.list_name}</h2>
-        {stockList.public ? (
+        {stockList.list_type === StockListType.public ? (
           <div className="badge badge-success">Public</div>
         ) : (
           <div className="badge badge-error">Private</div>

@@ -1,7 +1,19 @@
+export enum StockListType {
+  public = 'public',
+  private = 'private',
+  portfolio = 'portfolio',
+}
+
 export interface StockList {
   username: string;
   list_name: string;
-  public: boolean;
+  list_type: StockListType;
+}
+
+export interface Portfolio {
+  username: string;
+  list_name: string;
+  cash: number;
 }
 
 export interface StockListStock {

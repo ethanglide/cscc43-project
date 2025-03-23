@@ -5,6 +5,7 @@ import Home from "./home/home";
 import StockListPage from "./stock-lists/stock-list-page";
 import StockListBrowse from "./stock-lists/stock-list-browse";
 import SharedStockList from "./stock-lists/shared-stock-list";
+import PortfoliosPage from "./portfolios/portfolios-page";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "stock-lists/:username/:listName",
         element: <SharedStockList />,
+      },
+      {
+        path: "portfolios",
+        element: <PortfoliosPage />,
       },
     ],
   },

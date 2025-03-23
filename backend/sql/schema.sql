@@ -53,8 +53,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF EXISTS (
         SELECT 1 FROM friend_requests 
-        WHERE 1 = 1
-            AND sender = NEW.sender 
+        WHERE sender = NEW.sender 
             AND receiver = NEW.receiver 
             AND status = 'rejected' 
             AND timestamp <= NOW() - INTERVAL '5 MINUTES'
@@ -62,8 +61,7 @@ BEGIN
         UPDATE friend_requests 
         SET
             status = 'pending', timestamp = CURRENT_TIMESTAMP 
-        WHERE 1 = 1
-            AND sender = NEW.sender 
+        WHERE sender = NEW.sender 
             AND receiver = NEW.receiver;
         
         -- Prevent the new row from being inserted
@@ -79,20 +77,17 @@ BEFORE INSERT ON friend_requests
 FOR EACH ROW
 EXECUTE FUNCTION handle_resend_friend_request();
 
-CREATE TABLE IF NOT EXISTS portfolios (
-    username TEXT NOT NULL,
-    portfolio_name TEXT NOT NULL,
-    cash REAL NOT NULL DEFAULT 0,
-    PRIMARY KEY (username, portfolio_name),
-    FOREIGN KEY (username) REFERENCES users(username)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
+DO $$ BEGIN
+    CREATE TYPE stock_list_type AS ENUM ('public', 'private', 'portfolio');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS stock_lists (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
-    public BOOLEAN NOT NULL DEFAULT FALSE,
+    list_type stock_list_type NOT NULL DEFAULT 'private',
+    cash REAL NOT NULL DEFAULT 0, -- Only for portfolios
     PRIMARY KEY (username, list_name),
     FOREIGN KEY (username) REFERENCES users(username)
         ON DELETE CASCADE
@@ -114,6 +109,57 @@ CREATE TABLE IF NOT EXISTS reviews (
         ON UPDATE CASCADE,
     CHECK (owner_username != reviewer_username)
 );
+
+-- Not allowed to review portfolios
+CREATE OR REPLACE FUNCTION prevent_portfolio_review()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM stock_lists
+        WHERE username = NEW.owner_username
+            AND list_name = NEW.list_name
+            AND list_type = 'portfolio'
+    ) THEN
+        RAISE EXCEPTION 'Cannot review a portfolio';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_portfolio_review
+BEFORE INSERT ON reviews
+FOR EACH ROW
+EXECUTE FUNCTION prevent_portfolio_review();
+
+-- Update review and rating if the review already exists
+CREATE OR REPLACE FUNCTION update_review()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM reviews
+        WHERE owner_username = NEW.owner_username
+            AND list_name = NEW.list_name
+            AND reviewer_username = NEW.reviewer_username
+    ) THEN
+        UPDATE reviews
+        SET review = NEW.review, rating = NEW.rating
+        WHERE owner_username = NEW.owner_username
+            AND list_name = NEW.list_name
+            AND reviewer_username = NEW.reviewer_username;
+        
+        -- Prevent the new row from being inserted
+        RETURN NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_update_review
+BEFORE INSERT ON reviews
+FOR EACH ROW
+EXECUTE FUNCTION update_review();
 
 CREATE TABLE IF NOT EXISTS stocks (
     symbol TEXT PRIMARY KEY
@@ -149,19 +195,33 @@ CREATE TABLE IF NOT EXISTS stock_list_stocks (
     CHECK (amount > 0)
 );
 
-CREATE TABLE IF NOT EXISTS portfolio_stocks (
-    username TEXT NOT NULL,
-    portfolio_name TEXT NOT NULL,
-    symbol TEXT NOT NULL,
-    amount INTEGER NOT NULL,
-    PRIMARY KEY (username, portfolio_name, symbol),
-    FOREIGN KEY (username, portfolio_name) REFERENCES portfolios(username, portfolio_name)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    FOREIGN KEY (symbol) REFERENCES stocks(symbol)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CHECK (amount > 0)
-);
+-- Update stock amount if the stock is already in the list
+CREATE OR REPLACE FUNCTION update_stock_amount()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM stock_list_stocks
+        WHERE username = NEW.username
+            AND list_name = NEW.list_name
+            AND symbol = NEW.symbol
+    ) THEN
+        UPDATE stock_list_stocks
+        SET amount = NEW.amount
+        WHERE username = NEW.username
+            AND list_name = NEW.list_name
+            AND symbol = NEW.symbol;
+        
+        -- Prevent the new row from being inserted
+        RETURN NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER check_update_stock_amount
+BEFORE INSERT ON stock_list_stocks
+FOR EACH ROW
+EXECUTE FUNCTION update_stock_amount();
 
 COMMIT;

@@ -1,5 +1,5 @@
 import { FormEvent, useContext, useEffect, useMemo, useState } from "react";
-import StockListsApi, { ReviewResponse, StockListsResponse } from "../api/stock-lists-api";
+import StockListsApi, { ReviewResponse, StockListsResponse, StockListType } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import RatingStars from "../components/rating-stars";
 import { FiEdit, FiRotateCcw, FiTrash2 } from "react-icons/fi";
@@ -14,7 +14,7 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
 
   // Public stock lists have a default review for non-owners
   const userReview = useMemo(() => reviews.find((review) => review.reviewer_username === user?.username) ||
-    (stockList.public && isOwner ? {
+    (stockList.list_type === StockListType.public && user && !isOwner ? {
       owner_username: stockList.username,
       list_name: stockList.list_name,
       reviewer_username: user.username,

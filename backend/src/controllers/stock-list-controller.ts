@@ -17,6 +17,17 @@ export default class StockListController {
     }
   }
 
+  static async getPortfolios(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+
+    try {
+      const portfolios = await StockListData.getPortfolios(username);
+      res.json(portfolios);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
   static async getStockListStocks(req: Request, res: Response) {
     const { username, listName } = req.query;
 
@@ -38,6 +49,18 @@ export default class StockListController {
     try {
       await StockListData.createStockList(username, listName, isPublic);
       res.json({ message: "Stock list created" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async createPortfolio(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName } = req.body;
+
+    try {
+      await StockListData.createPortfolio(username, listName);
+      res.json({ message: "Portfolio created" });
     } catch (err) {
       res.status(500).json({ error: err });
     }
@@ -110,7 +133,7 @@ export default class StockListController {
     const { listName, reviewer } = req.body;
 
     try {
-      await StockListData.createOrUpdateReview(username, listName, reviewer);
+      await StockListData.createReview(username, listName, reviewer);
       res.json({ message: "Stock list shared" });
     } catch (err) {
       res.status(500).json({ error: err });
@@ -150,7 +173,7 @@ export default class StockListController {
     const { ownerUsername, listName, review, rating } = req.body;
 
     try {
-      await StockListData.createOrUpdateReview(ownerUsername, listName, username, review, rating);
+      await StockListData.createReview(ownerUsername, listName, username, review, rating);
       res.json({ message: "Review updated" });
     } catch (err) {
       res.status(500).json({ error: err });
@@ -163,7 +186,7 @@ export default class StockListController {
 
     try {
       // When you set a review to an empty string, it will not show on frontend
-      await StockListData.createOrUpdateReview(username, listName, reviewerUsername, "", 5);
+      await StockListData.createReview(username, listName, reviewerUsername, "", 5);
       res.json({ message: "Review removed" });
     } catch (err) {
       res.status(500).json({ error: err });
