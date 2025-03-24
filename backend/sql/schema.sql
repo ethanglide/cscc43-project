@@ -134,16 +134,78 @@ CREATE TABLE IF NOT EXISTS stock_history (
         ON UPDATE CASCADE
 );
 
-CREATE VIEW stock_CV AS 
+CREATE OR REPLACE VIEW stock_CV AS 
     SELECT
         symbol, 
-        (STDDEV(close) / AVG(close)) * 100 AS CV
+        (STDDEV(close) / NULLIF(AVG(close), 0)) * 100 AS CV
     FROM
         stock_history
     GROUP BY 
         symbol
     HAVING 
         count(close) > 0;
+
+CREATE OR REPLACE VIEW stock_beta AS
+    WITH market_return AS (
+        SELECT 
+            timestamp,
+            SUM(close) AS market_close
+        FROM 
+            stock_history
+        GROUP BY 
+            timestamp
+    )
+    SELECT 
+        sh.symbol,
+        COVAR_POP(sh.close, mr.market_close) / NULLIF(VAR_POP(mr.market_close), 0) AS beta
+    FROM 
+        stock_history sh
+    JOIN 
+        market_return mr ON 
+        sh.timestamp = mr.timestamp
+    GROUP BY 
+        sh.symbol;
+
+CREATE OR REPLACE VIEW portfolio_corr_mtx AS
+    WITH stock_returns AS (
+        SELECT 
+            ps.username,
+            ps.portfolio_name,
+            sh.symbol,
+            sh.timestamp,
+            (
+                sh.close - 
+                LAG(sh.close) OVER (PARTITION BY ps.username, ps.portfolio_name, sh.symbol ORDER BY sh.timestamp)) / 
+                NULLIF(LAG(sh.close) OVER (PARTITION BY ps.username, ps.portfolio_name, sh.symbol ORDER BY sh.timestamp), 0
+            ) AS return
+        FROM 
+            stock_history sh
+        JOIN 
+            portfolio_stocks ps ON 
+            sh.symbol = ps.symbol
+    )
+    SELECT 
+        s1.username,
+        s1.portfolio_name,
+        s1.symbol AS stock1,
+        s2.symbol AS stock2,
+        CORR(s1.return, s2.return) AS correlation
+    FROM 
+        stock_returns s1
+    JOIN 
+        stock_returns s2 ON 
+        s1.username = s2.username AND 
+        s1.portfolio_name = s2.portfolio_name AND 
+        s1.timestamp = s2.timestamp AND 
+        s1.symbol < s2.symbol
+    GROUP BY 
+        s1.username, 
+        s1.portfolio_name, 
+        s1.symbol, 
+        s2.symbol
+    HAVING
+        COUNT(s1.return) > 0 AND 
+        COUNT(s2.return) > 0;
 
 CREATE TABLE IF NOT EXISTS stock_list_stocks (
     username TEXT NOT NULL,
