@@ -245,4 +245,54 @@ export default class StockListData {
             WHERE list_type = ${StockListType.public}
         `;
   }
+
+  /**
+   * Transfer cash between two stock lists
+   * @param username owner of the stock lists
+   * @param fromList stock list to transfer cash from
+   * @param toList stock list to transfer cash to
+   * @param amount amount of cash to transfer
+   */
+  static async transferCash(
+    username: string,
+    fromList: string,
+    toList: string,
+    amount: number,
+  ) {
+    // Transaction will fail if the user does not have enough cash in the fromList
+    // due to CHECK constraint on stock_lists.cash
+    await sql.begin(async (sql) => {
+      await sql`
+        UPDATE stock_lists
+        SET
+          cash = cash - ${amount}
+        WHERE
+          username = ${username} AND list_name = ${fromList}
+      `;
+
+      await sql`
+        UPDATE stock_lists
+        SET
+          cash = cash + ${amount}
+        WHERE
+          username = ${username} AND list_name = ${toList}
+      `;
+    });
+  }
+
+  /**
+   * Add cash to a stock list, can be used for deposit or withdrawal (negative amount)
+   * @param username owner of the stock list
+   * @param listName name of the stock list
+   * @param amount amount of cash to add (or subtract if negative)
+   */
+  static async addCash(username: string, listName: string, amount: number) {
+    await sql`
+            UPDATE stock_lists
+            SET
+              cash = cash + ${amount}
+            WHERE
+              username = ${username} AND list_name = ${listName}
+        `;
+  }
 }

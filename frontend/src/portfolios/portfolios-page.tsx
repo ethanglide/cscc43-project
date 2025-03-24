@@ -175,7 +175,11 @@ export default function PortfoliosPage() {
         </button>
       </div>
       {selectedIndex !== null && portfolios[selectedIndex] && (
-        <PortfolioInfo portfolio={portfolios[selectedIndex]} />
+        <PortfolioInfo
+          portfolios={portfolios}
+          setPortfolios={setPortfolios}
+          selectedIndex={selectedIndex}
+        />
       )}
       <Modal id={createPortfolioModalId}>
         <h2 className="text-xl font-bold">Create Portfolio</h2>

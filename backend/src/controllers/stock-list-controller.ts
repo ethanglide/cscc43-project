@@ -204,4 +204,41 @@ export default class StockListController {
       res.status(500).json({ error: err });
     }
   }
+
+  static async transferCash(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { fromList, toList, amount } = req.body;
+
+    try {
+      await StockListData.transferCash(username, fromList, toList, amount);
+      res.json({ message: "Cash transferred" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async depositCash(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, amount } = req.body;
+
+    try {
+      await StockListData.addCash(username, listName, amount);
+      res.json({ message: "Cash deposited" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async withdrawCash(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, amount } = req.body;
+
+    try {
+      // Withdraw cash by adding a negative amount
+      await StockListData.addCash(username, listName, -amount);
+      res.json({ message: "Cash withdrawn" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
 }

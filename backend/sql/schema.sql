@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS stock_lists (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
     list_type stock_list_type NOT NULL DEFAULT 'private',
-    cash REAL NOT NULL DEFAULT 0, -- Only for portfolios
+    cash REAL NOT NULL DEFAULT 0 CHECK(cash >= 0), -- Only for portfolios
     PRIMARY KEY (username, list_name),
     FOREIGN KEY (username) REFERENCES users(username)
         ON DELETE CASCADE

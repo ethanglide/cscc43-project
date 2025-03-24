@@ -1,15 +1,26 @@
 import { PortfoliosResponse } from "../api/stock-lists-api";
 import StockListStocks from "../stock-lists/stock-list-stocks";
+import PortfolioCash from "./portfolio-cash";
 
 export default function PortfolioInfo({
-  portfolio,
+  portfolios,
+  setPortfolios,
+  selectedIndex,
 }: {
-  portfolio: PortfoliosResponse;
+  portfolios: PortfoliosResponse[];
+  setPortfolios: (portfolios: PortfoliosResponse[]) => void;
+  selectedIndex: number;
 }) {
+  const portfolio = portfolios[selectedIndex];
+
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-xl font-bold">Cash</h3>
-      <p>${portfolio.cash}</p>
+      <PortfolioCash
+        portfolios={portfolios}
+        setPortfolios={setPortfolios}
+        selectedIndex={selectedIndex}
+      />
       <h3 className="text-xl font-bold">Stocks</h3>
       <StockListStocks
         username={portfolio.username}

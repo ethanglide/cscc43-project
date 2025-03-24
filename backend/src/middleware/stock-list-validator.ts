@@ -67,4 +67,20 @@ export default class StockListValidator {
     body("listName").trim().notEmpty().escape().isString(),
     body("reviewerUsername").trim().notEmpty().escape().isString(),
   ]);
+
+  static transferCash = validate([
+    body("fromList").trim().notEmpty().escape().isString(),
+    body("toList").trim().notEmpty().escape().isString(),
+    body("amount").isNumeric(),
+  ]);
+
+  static depositCash = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("amount").isNumeric(),
+  ]);
+
+  static withdrawCash = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("amount").isNumeric(),
+  ]);
 }

@@ -272,4 +272,54 @@ export default class StockListsApi {
 
     return data as MessageResponse;
   }
+
+  static async transferCash(
+    token: string,
+    fromList: string,
+    toList: string,
+    amount: number,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/transfer-cash",
+      { fromList, toList, amount },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async depositCash(token: string, listName: string, amount: number) {
+    const response = await HttpClient.post(
+      "/stock-lists/deposit-cash",
+      { listName, amount },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async withdrawCash(token: string, listName: string, amount: number) {
+    const response = await HttpClient.post(
+      "/stock-lists/withdraw-cash",
+      { listName, amount },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
 }

@@ -107,4 +107,25 @@ router.post(
   StockListController.removeReview,
 );
 
+router.post(
+  "/transfer-cash",
+  authenticate,
+  StockListValidator.transferCash,
+  StockListController.transferCash,
+);
+
+router.post(
+  "/deposit-cash",
+  authenticate,
+  StockListValidator.depositCash,
+  StockListController.depositCash,
+);
+
+router.post(
+  "/withdraw-cash",
+  authenticate,
+  StockListValidator.withdrawCash,
+  StockListController.withdrawCash,
+);
+
 export default router;
