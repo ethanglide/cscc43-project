@@ -17,6 +17,17 @@ export default class StockListController {
     }
   }
 
+  static async getPortfolios(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+
+    try {
+      const portfolios = await StockListData.getPortfolios(username);
+      res.json(portfolios);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
   static async getStockListStocks(req: Request, res: Response) {
     const { username, listName } = req.query;
 
@@ -38,6 +49,18 @@ export default class StockListController {
     try {
       await StockListData.createStockList(username, listName, isPublic);
       res.json({ message: "Stock list created" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async createPortfolio(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName } = req.body;
+
+    try {
+      await StockListData.createPortfolio(username, listName);
+      res.json({ message: "Portfolio created" });
     } catch (err) {
       res.status(500).json({ error: err });
     }
@@ -110,7 +133,7 @@ export default class StockListController {
     const { listName, reviewer } = req.body;
 
     try {
-      await StockListData.createOrUpdateReview(username, listName, reviewer);
+      await StockListData.createReview(username, listName, reviewer);
       res.json({ message: "Stock list shared" });
     } catch (err) {
       res.status(500).json({ error: err });
@@ -140,6 +163,80 @@ export default class StockListController {
         requester,
       );
       res.json(reviews);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async editReview(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { ownerUsername, listName, review, rating } = req.body;
+
+    try {
+      await StockListData.createReview(
+        ownerUsername,
+        listName,
+        username,
+        review,
+        rating,
+      );
+      res.json({ message: "Review updated" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async removeReview(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, reviewerUsername } = req.body;
+
+    try {
+      // When you set a review to an empty string, it will not show on frontend
+      await StockListData.createReview(
+        username,
+        listName,
+        reviewerUsername,
+        "",
+        5,
+      );
+      res.json({ message: "Review removed" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async transferCash(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { fromList, toList, amount } = req.body;
+
+    try {
+      await StockListData.transferCash(username, fromList, toList, amount);
+      res.json({ message: "Cash transferred" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async depositCash(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, amount } = req.body;
+
+    try {
+      await StockListData.addCash(username, listName, amount);
+      res.json({ message: "Cash deposited" });
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async withdrawCash(req: Request, res: Response) {
+    const username = res.locals.tokenData.username;
+    const { listName, amount } = req.body;
+
+    try {
+      // Withdraw cash by adding a negative amount
+      await StockListData.addCash(username, listName, -amount);
+      res.json({ message: "Cash withdrawn" });
     } catch (err) {
       res.status(500).json({ error: err });
     }

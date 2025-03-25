@@ -42,6 +42,9 @@ export default function Home() {
       <Link to="/browse" className="btn btn-secondary">
         Browse Stock Lists
       </Link>
+      <Link to="/portfolios" className="btn btn-secondary">
+        My Portfolios
+      </Link>
     </div>
   );
 }

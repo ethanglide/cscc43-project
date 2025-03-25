@@ -1,9 +1,21 @@
 import { HttpClient, MessageResponse, ErrorResponse } from "./http-client";
 
+export enum StockListType {
+  public = "public",
+  private = "private",
+  portfolio = "portfolio",
+}
+
 export interface StockListsResponse {
   username: string;
   list_name: string;
-  public: boolean;
+  list_type: StockListType;
+}
+
+export interface PortfoliosResponse {
+  username: string;
+  list_name: string;
+  cash: number;
 }
 
 export interface StockListStockResponse {
@@ -29,6 +41,17 @@ export default class StockListsApi {
     }
 
     return data as StockListsResponse[];
+  }
+
+  static async getPortfolios(token: string) {
+    const response = await HttpClient.get(`/stock-lists/portfolios`, token);
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as PortfoliosResponse[];
   }
 
   static async getPublicStockLists() {
@@ -92,6 +115,21 @@ export default class StockListsApi {
     const response = await HttpClient.post(
       "/stock-lists/create",
       { listName, isPublic },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async createPortfolio(token: string, listName: string) {
+    const response = await HttpClient.post(
+      "/stock-lists/create-portfolio",
+      { listName },
       token,
     );
     const data = await response.json();
@@ -184,6 +222,96 @@ export default class StockListsApi {
     const response = await HttpClient.post(
       "/stock-lists/remove-stock",
       { listName, symbol },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async editReview(
+    token: string,
+    ownerUsername: string,
+    listName: string,
+    review: string,
+    rating: number,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/edit-review",
+      { ownerUsername, listName, review, rating },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async removeReview(
+    token: string,
+    listName: string,
+    reviewerUsername: string,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/remove-review",
+      { listName, reviewerUsername },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async transferCash(
+    token: string,
+    fromList: string,
+    toList: string,
+    amount: number,
+  ) {
+    const response = await HttpClient.post(
+      "/stock-lists/transfer-cash",
+      { fromList, toList, amount },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async depositCash(token: string, listName: string, amount: number) {
+    const response = await HttpClient.post(
+      "/stock-lists/deposit-cash",
+      { listName, amount },
+      token,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
+
+  static async withdrawCash(token: string, listName: string, amount: number) {
+    const response = await HttpClient.post(
+      "/stock-lists/withdraw-cash",
+      { listName, amount },
       token,
     );
     const data = await response.json();

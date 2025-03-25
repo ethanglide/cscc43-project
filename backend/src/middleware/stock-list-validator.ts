@@ -6,6 +6,8 @@ export default class StockListValidator {
     query("username").trim().notEmpty().escape().isString(),
   ]);
 
+  static getPortfolios = validate([]);
+
   static getStockListStocks = validate([
     query("username").trim().notEmpty().escape().isString(),
     query("listName").trim().notEmpty().escape().isString(),
@@ -14,6 +16,10 @@ export default class StockListValidator {
   static createStockList = validate([
     body("listName").trim().notEmpty().escape().isString(),
     body("isPublic").isBoolean(),
+  ]);
+
+  static createPortfolio = validate([
+    body("listName").trim().notEmpty().escape().isString(),
   ]);
 
   static deleteStockList = validate([
@@ -48,5 +54,33 @@ export default class StockListValidator {
   static getStockListReviews = validate([
     query("username").trim().notEmpty().escape().isString(),
     query("listName").trim().notEmpty().escape().isString(),
+  ]);
+
+  static editReview = validate([
+    body("ownerUsername").trim().notEmpty().escape().isString(),
+    body("listName").trim().notEmpty().escape().isString(),
+    body("review").trim().escape().isString(), // can set review to empty to make it not show on frontend
+    body("rating").isNumeric(),
+  ]);
+
+  static removeReview = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("reviewerUsername").trim().notEmpty().escape().isString(),
+  ]);
+
+  static transferCash = validate([
+    body("fromList").trim().notEmpty().escape().isString(),
+    body("toList").trim().notEmpty().escape().isString(),
+    body("amount").isNumeric(),
+  ]);
+
+  static depositCash = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("amount").isNumeric(),
+  ]);
+
+  static withdrawCash = validate([
+    body("listName").trim().notEmpty().escape().isString(),
+    body("amount").isNumeric(),
   ]);
 }
