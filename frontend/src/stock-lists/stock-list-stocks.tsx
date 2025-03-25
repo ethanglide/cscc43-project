@@ -1,17 +1,16 @@
 import { FormEvent, useContext, useEffect, useState } from "react";
-import StockListsApi, {
-  StockListsResponse,
-  StockListStockResponse,
-} from "../api/stock-lists-api";
+import StockListsApi, { StockListStockResponse } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StocksApi, { StockResponse } from "../api/stocks-api";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import Modal from "../components/modal";
 
 export default function StockListStocks({
-  stockList,
+  username,
+  listName,
 }: {
-  stockList: StockListsResponse;
+  username: string;
+  listName: string;
 }) {
   const { user } = useContext(UserContext);
   const [allStocks, setAllStocks] = useState<StockResponse[]>([]);
@@ -23,7 +22,7 @@ export default function StockListStocks({
   const [newStockLoading, setNewStockLoading] = useState(false);
   const [newStockError, setNewStockError] = useState("");
 
-  const isOwner = user && user.username === stockList.username;
+  const isOwner = user && user.username === username;
   const modalId = "add-stock-modal";
   const filteredStocks = allStocks.filter((stock) =>
     stock.symbol.startsWith(newStockSymbol),
@@ -41,10 +40,7 @@ export default function StockListStocks({
   }
 
   async function getStockListStocks() {
-    const response = await StockListsApi.getStockListStocks(
-      stockList.username,
-      stockList.list_name,
-    );
+    const response = await StockListsApi.getStockListStocks(username, listName);
 
     if ("error" in response) {
       console.log(response.error);
@@ -63,7 +59,7 @@ export default function StockListStocks({
 
     const response = await StockListsApi.addStockToList(
       user.accessToken,
-      stockList.list_name,
+      listName,
       newStockSymbol,
       newStockAmount,
     );
@@ -110,7 +106,7 @@ export default function StockListStocks({
 
     const response = await StockListsApi.removeStockFromList(
       user.accessToken,
-      stockList.list_name,
+      listName,
       symbol,
     );
 
@@ -129,7 +125,7 @@ export default function StockListStocks({
     setNewStockSymbol(newSymbol);
     setNewStockAmount(
       stockListStocks.find((stock) => stock.symbol === newSymbol)?.amount ||
-      newStockAmount,
+        newStockAmount,
     );
   }
 
@@ -139,11 +135,11 @@ export default function StockListStocks({
 
   useEffect(() => {
     getStockListStocks();
-  }, [user, stockList]);
+  }, [user, username, listName]);
 
   return (
     <>
-      <div className="tab-content overflow-x-hidden rounded-lg shadow-lg max-h-96">
+      <div className="overflow-x-hidden rounded-lg shadow-lg max-h-96">
         <table className="table table-pin-rows">
           <thead>
             <tr className="bg-base-200">

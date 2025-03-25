@@ -1,5 +1,10 @@
 import { Review } from "../models/review";
-import { StockList, StockListStock } from "../models/stock-list";
+import {
+  Portfolio,
+  StockList,
+  StockListStock,
+  StockListType,
+} from "../models/stock-list";
 import sql from "./sql";
 
 /**
@@ -14,9 +19,25 @@ export default class StockListData {
   static async getStockLists(username: string) {
     return sql<StockList[]>`
             SELECT
-                username, list_name, public
+                username, list_name, list_type
             FROM stock_lists
-            WHERE username = ${username}
+            WHERE
+              username = ${username} AND list_type != ${StockListType.portfolio}
+        `;
+  }
+
+  /**
+   * Get all portfolios of a user
+   * @param username the username of the user
+   * @returns the portfolios of the user
+   */
+  static async getPortfolios(username: string) {
+    return sql<Portfolio[]>`
+            SELECT
+                username, list_name, cash
+            FROM stock_lists
+            WHERE
+              username = ${username} AND list_type = ${StockListType.portfolio}
         `;
   }
 
@@ -47,9 +68,26 @@ export default class StockListData {
     listName: string,
     isPublic: boolean,
   ) {
+    const stockListType = isPublic
+      ? StockListType.public
+      : StockListType.private;
     await sql`
-            INSERT INTO stock_lists (username, list_name, public)
-            VALUES (${username}, ${listName}, ${isPublic})
+            INSERT INTO stock_lists (username, list_name, list_type)
+            VALUES (${username}, ${listName}, ${stockListType})
+        `;
+  }
+
+  /**
+   * Create a portfolio
+   * @param username the username of the user
+   * @param listName the name of the portfolio
+   */
+  static async createPortfolio(username: string, listName: string) {
+    await sql`
+            INSERT INTO stock_lists
+                (username, list_name, list_type)
+            VALUES
+                (${username}, ${listName}, ${StockListType.portfolio})
         `;
   }
 
@@ -77,10 +115,10 @@ export default class StockListData {
     stockListStock: StockListStock,
   ) {
     await sql`
-            INSERT INTO stock_list_stocks (username, list_name, symbol, amount)
-            VALUES (${username}, ${listName}, ${stockListStock.symbol}, ${stockListStock.amount})
-            ON CONFLICT (username, list_name, symbol) DO UPDATE
-            SET amount = ${stockListStock.amount}
+            INSERT INTO stock_list_stocks
+                (username, list_name, symbol, amount)
+            VALUES
+                (${username}, ${listName}, ${stockListStock.symbol}, ${stockListStock.amount})
         `;
   }
 
@@ -97,7 +135,9 @@ export default class StockListData {
   ) {
     await sql`
             DELETE FROM stock_list_stocks
-            WHERE username = ${username} AND list_name = ${listName} AND symbol = ${symbol}
+            WHERE username = ${username}
+              AND list_name = ${listName}
+              AND symbol = ${symbol}
         `;
   }
 
@@ -109,7 +149,7 @@ export default class StockListData {
    * @param review review text
    * @param rating rating
    */
-  static async createOrUpdateReview(
+  static async createReview(
     username: string,
     listName: string,
     reviewerUsername: string,
@@ -117,10 +157,10 @@ export default class StockListData {
     rating: number = 5,
   ) {
     await sql`
-            INSERT INTO reviews (owner_username, list_name, reviewer_username, review, rating)
-            VALUES (${username}, ${listName}, ${reviewerUsername}, ${review}, ${rating})
-            ON CONFLICT (owner_username, list_name, reviewer_username) DO UPDATE
-            SET review = ${review}, rating = ${rating}
+            INSERT INTO reviews
+                (owner_username, list_name, reviewer_username, review, rating)
+            VALUES
+                (${username}, ${listName}, ${reviewerUsername}, ${review}, ${rating})
         `;
   }
 
@@ -137,8 +177,7 @@ export default class StockListData {
   ) {
     await sql`
             DELETE FROM reviews
-            WHERE 1 = 1
-                AND owner_username = ${username}
+            WHERE owner_username = ${username}
                 AND list_name = ${listName}
                 AND reviewer_username = ${reviewerUsername}
         `;
@@ -162,13 +201,15 @@ export default class StockListData {
     return sql<Review[]>`
             SELECT
                 owner_username, reviews.list_name, reviewer_username, review, rating
-            FROM reviews JOIN stock_lists ON 1 = 1
-                AND reviews.owner_username = stock_lists.username
+            FROM reviews JOIN stock_lists ON
+                reviews.owner_username = stock_lists.username
                 AND reviews.list_name = stock_lists.list_name
             WHERE
-                owner_username = ${username} AND reviews.list_name = ${listName}
+                owner_username = ${username} 
+                AND reviews.list_name = ${listName}
+                AND list_type != ${StockListType.portfolio}
                 AND (
-                    public = TRUE
+                    list_type = ${StockListType.public}
                     OR reviewer_username = ${requester}
                     OR owner_username = ${requester}
                 )
@@ -183,12 +224,12 @@ export default class StockListData {
   static async getSharedStockLists(username: string) {
     return sql<StockList[]>`
             SELECT
-                username, stock_lists.list_name, public
-            FROM reviews JOIN stock_lists ON 1 = 1
-                AND reviews.owner_username = stock_lists.username
+                username, stock_lists.list_name, list_type
+            FROM reviews JOIN stock_lists ON
+                reviews.owner_username = stock_lists.username
                 AND reviews.list_name = stock_lists.list_name
             WHERE
-              reviewer_username = ${username} AND public = FALSE
+              reviewer_username = ${username} AND list_type = ${StockListType.private}
         `;
   }
 
@@ -199,9 +240,59 @@ export default class StockListData {
   static async getPublicStockLists() {
     return sql<StockList[]>`
             SELECT
-                username, list_name, public
+                username, list_name, list_type
             FROM stock_lists
-            WHERE public = TRUE
+            WHERE list_type = ${StockListType.public}
+        `;
+  }
+
+  /**
+   * Transfer cash between two stock lists
+   * @param username owner of the stock lists
+   * @param fromList stock list to transfer cash from
+   * @param toList stock list to transfer cash to
+   * @param amount amount of cash to transfer
+   */
+  static async transferCash(
+    username: string,
+    fromList: string,
+    toList: string,
+    amount: number,
+  ) {
+    // Transaction will fail if the user does not have enough cash in the fromList
+    // due to CHECK constraint on stock_lists.cash
+    await sql.begin(async (sql) => {
+      await sql`
+        UPDATE stock_lists
+        SET
+          cash = cash - ${amount}
+        WHERE
+          username = ${username} AND list_name = ${fromList}
+      `;
+
+      await sql`
+        UPDATE stock_lists
+        SET
+          cash = cash + ${amount}
+        WHERE
+          username = ${username} AND list_name = ${toList}
+      `;
+    });
+  }
+
+  /**
+   * Add cash to a stock list, can be used for deposit or withdrawal (negative amount)
+   * @param username owner of the stock list
+   * @param listName name of the stock list
+   * @param amount amount of cash to add (or subtract if negative)
+   */
+  static async addCash(username: string, listName: string, amount: number) {
+    await sql`
+            UPDATE stock_lists
+            SET
+              cash = cash + ${amount}
+            WHERE
+              username = ${username} AND list_name = ${listName}
         `;
   }
 }

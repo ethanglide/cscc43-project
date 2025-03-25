@@ -12,6 +12,13 @@ router.get(
 );
 
 router.get(
+  "/portfolios",
+  authenticate,
+  StockListValidator.getPortfolios,
+  StockListController.getPortfolios,
+);
+
+router.get(
   "/public",
   StockListValidator.getPublicStockLists,
   StockListController.getPublicStockLists,
@@ -42,6 +49,13 @@ router.post(
   authenticate,
   StockListValidator.createStockList,
   StockListController.createStockList,
+);
+
+router.post(
+  "/create-portfolio",
+  authenticate,
+  StockListValidator.createPortfolio,
+  StockListController.createPortfolio,
 );
 
 router.post(
@@ -91,6 +105,27 @@ router.post(
   authenticate,
   StockListValidator.removeReview,
   StockListController.removeReview,
+);
+
+router.post(
+  "/transfer-cash",
+  authenticate,
+  StockListValidator.transferCash,
+  StockListController.transferCash,
+);
+
+router.post(
+  "/deposit-cash",
+  authenticate,
+  StockListValidator.depositCash,
+  StockListController.depositCash,
+);
+
+router.post(
+  "/withdraw-cash",
+  authenticate,
+  StockListValidator.withdrawCash,
+  StockListController.withdrawCash,
 );
 
 export default router;

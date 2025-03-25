@@ -1,10 +1,18 @@
 import { FormEvent, useContext, useEffect, useMemo, useState } from "react";
-import StockListsApi, { ReviewResponse, StockListsResponse } from "../api/stock-lists-api";
+import StockListsApi, {
+  ReviewResponse,
+  StockListsResponse,
+  StockListType,
+} from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import RatingStars from "../components/rating-stars";
 import { FiEdit, FiRotateCcw, FiTrash2 } from "react-icons/fi";
 
-export default function StockListReviews({ stockList }: { stockList: StockListsResponse; }) {
+export default function StockListReviews({
+  stockList,
+}: {
+  stockList: StockListsResponse;
+}) {
   const { user } = useContext(UserContext);
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [newReview, setNewReview] = useState("");
@@ -13,20 +21,28 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
   const isOwner = user && user.username === stockList.username;
 
   // Public stock lists have a default review for non-owners
-  const userReview = useMemo(() => reviews.find((review) => review.reviewer_username === user?.username) ||
-    (stockList.public && isOwner ? {
-      owner_username: stockList.username,
-      list_name: stockList.list_name,
-      reviewer_username: user.username,
-      review: "",
-      rating: 1,
-    } : undefined)
-    , [reviews, stockList, user]);
+  const userReview = useMemo(
+    () =>
+      reviews.find((review) => review.reviewer_username === user?.username) ||
+      (stockList.list_type === StockListType.public && user && !isOwner
+        ? {
+            owner_username: stockList.username,
+            list_name: stockList.list_name,
+            reviewer_username: user.username,
+            review: "",
+            rating: 1,
+          }
+        : undefined),
+    [reviews, stockList, user],
+  );
 
-  const reviewChanged = userReview?.review !== newReview || userReview?.rating !== newRating;
+  const reviewChanged =
+    userReview?.review !== newReview || userReview?.rating !== newRating;
 
   // Your reviews and empty reviews are not displayed
-  const filteredReviews = reviews.filter((review) => review.reviewer_username !== user?.username && review.review);
+  const filteredReviews = reviews.filter(
+    (review) => review.reviewer_username !== user?.username && review.review,
+  );
 
   async function editReview(e: FormEvent) {
     e.preventDefault();
@@ -48,17 +64,19 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
       return;
     }
 
-    const updatedReviews = reviews.includes(userReview) ? reviews.map((review) => {
-      if (review.reviewer_username === user.username) {
-        return {
-          ...review,
-          review: newReview,
-          rating: newRating,
-        };
-      }
+    const updatedReviews = reviews.includes(userReview)
+      ? reviews.map((review) => {
+          if (review.reviewer_username === user.username) {
+            return {
+              ...review,
+              review: newReview,
+              rating: newRating,
+            };
+          }
 
-      return review;
-    }) : [...reviews, userReview];
+          return review;
+        })
+      : [...reviews, userReview];
 
     setReviews(updatedReviews);
   }
@@ -79,7 +97,9 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
       return;
     }
 
-    setReviews(reviews.filter((review) => review.reviewer_username !== reviewerUsername));
+    setReviews(
+      reviews.filter((review) => review.reviewer_username !== reviewerUsername),
+    );
   }
 
   async function getStockListReviews() {
@@ -111,8 +131,8 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
   }, [userReview]);
 
   return (
-    <div className="tab-content">
-      {userReview &&
+    <>
+      {userReview && (
         <form
           onSubmit={editReview}
           className="flex flex-col gap-4 bg-base-200 rounded-lg shadow p-4 px-6"
@@ -151,20 +171,22 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
               value={newReview}
               onChange={(e) => setNewReview(e.target.value)}
             />
-            {newReview.length > 4000 && <p className="text-error">4000 character limit</p>}
+            {newReview.length > 4000 && (
+              <p className="text-error">4000 character limit</p>
+            )}
           </fieldset>
         </form>
-      }
+      )}
       <ul className="list mt-4">
         {filteredReviews.map((review) => (
-          <li
-            key={review.reviewer_username}
-            className="list-row"
-          >
+          <li key={review.reviewer_username} className="list-row">
             <div className="flex gap-2 items-center list-col-grow">
               <h3 className="text-lg font-bold">{review.reviewer_username}</h3>
-              <RatingStars name={`rating-${review.reviewer_username}`} rating={review.rating} />
-              {isOwner &&
+              <RatingStars
+                name={`rating-${review.reviewer_username}`}
+                rating={review.rating}
+              />
+              {isOwner && (
                 <div className="flex flex-grow justify-end">
                   <button
                     onClick={() => removeReview(review.reviewer_username)}
@@ -173,12 +195,12 @@ export default function StockListReviews({ stockList }: { stockList: StockListsR
                     <FiTrash2 />
                   </button>
                 </div>
-              }
+              )}
             </div>
             <p className="list-col-wrap">{review.review}</p>
           </li>
         ))}
       </ul>
-    </div>
+    </>
   );
 }

@@ -1,7 +1,5 @@
 import { useContext } from "react";
-import {
-  StockListsResponse,
-} from "../api/stock-lists-api";
+import { StockListsResponse, StockListType } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StockListStocks from "./stock-list-stocks";
 import StockListReviews from "./stock-list-reviews";
@@ -18,9 +16,10 @@ export default function StockListInfo({
     <div className="flex flex-col gap-4">
       <div className="flex gap-4 items-center">
         <h2 className="text-3xl font-bold">{stockList.list_name}</h2>
-        {stockList.public ? (
+        {stockList.list_type === StockListType.public && (
           <div className="badge badge-success">Public</div>
-        ) : (
+        )}
+        {stockList.list_type === StockListType.private && (
           <div className="badge badge-error">Private</div>
         )}
       </div>
@@ -38,14 +37,21 @@ export default function StockListInfo({
           aria-label="Stocks"
           defaultChecked
         />
-        <StockListStocks stockList={stockList} />
+        <div className="tab-content">
+          <StockListStocks
+            username={stockList.username}
+            listName={stockList.list_name}
+          />
+        </div>
         <input
           type="radio"
           name={tabsName}
           className="tab mb-4"
           aria-label="Reviews"
         />
-        <StockListReviews stockList={stockList} />
+        <div className="tab-content">
+          <StockListReviews stockList={stockList} />
+        </div>
       </div>
     </div>
   );
