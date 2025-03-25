@@ -212,47 +212,6 @@ CREATE OR REPLACE VIEW stock_beta AS
     GROUP BY 
         sh.symbol;
 
-CREATE OR REPLACE VIEW portfolio_corr_mtx AS
-    WITH stock_returns AS (
-        SELECT 
-            ps.username,
-            ps.portfolio_name,
-            sh.symbol,
-            sh.timestamp,
-            (
-                sh.close - 
-                LAG(sh.close) OVER (PARTITION BY ps.username, ps.portfolio_name, sh.symbol ORDER BY sh.timestamp)) / 
-                NULLIF(LAG(sh.close) OVER (PARTITION BY ps.username, ps.portfolio_name, sh.symbol ORDER BY sh.timestamp), 0
-            ) AS return
-        FROM 
-            stock_history sh
-        JOIN 
-            portfolio_stocks ps ON 
-            sh.symbol = ps.symbol
-    )
-    SELECT 
-        s1.username,
-        s1.portfolio_name,
-        s1.symbol AS stock1,
-        s2.symbol AS stock2,
-        CORR(s1.return, s2.return) AS correlation
-    FROM 
-        stock_returns s1
-    JOIN 
-        stock_returns s2 ON 
-        s1.username = s2.username AND 
-        s1.portfolio_name = s2.portfolio_name AND 
-        s1.timestamp = s2.timestamp AND 
-        s1.symbol < s2.symbol
-    GROUP BY 
-        s1.username, 
-        s1.portfolio_name, 
-        s1.symbol, 
-        s2.symbol
-    HAVING
-        COUNT(s1.return) > 0 AND 
-        COUNT(s2.return) > 0;
-
 CREATE TABLE IF NOT EXISTS stock_list_stocks (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
@@ -267,6 +226,47 @@ CREATE TABLE IF NOT EXISTS stock_list_stocks (
         ON UPDATE CASCADE,
     CHECK (amount > 0)
 );
+
+CREATE OR REPLACE VIEW portfolio_corr_mtx AS
+    WITH stock_returns AS (
+        SELECT 
+            sls.username,
+            sls.list_name,
+            sh.symbol,
+            sh.timestamp,
+            (
+                sh.close - 
+                LAG(sh.close) OVER (PARTITION BY sls.username, sls.list_name, sh.symbol ORDER BY sh.timestamp)) / 
+                NULLIF(LAG(sh.close) OVER (PARTITION BY sls.username, sls.list_name, sh.symbol ORDER BY sh.timestamp), 0
+            ) AS return
+        FROM 
+            stock_history sh
+        JOIN 
+            stock_list_stocks sls ON 
+            sh.symbol = sls.symbol
+    )
+    SELECT 
+        s1.username,
+        s1.list_name,
+        s1.symbol AS stock1,
+        s2.symbol AS stock2,
+        CORR(s1.return, s2.return) AS correlation
+    FROM 
+        stock_returns s1
+    JOIN 
+        stock_returns s2 ON 
+        s1.username = s2.username AND 
+        s1.list_name = s2.list_name AND 
+        s1.timestamp = s2.timestamp AND 
+        s1.symbol < s2.symbol
+    GROUP BY 
+        s1.username, 
+        s1.list_name, 
+        s1.symbol, 
+        s2.symbol
+    HAVING
+        COUNT(s1.return) > 0 AND 
+        COUNT(s2.return) > 0;
 
 -- Update stock amount if the stock is already in the list
 CREATE OR REPLACE FUNCTION update_stock_amount()
