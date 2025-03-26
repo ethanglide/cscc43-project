@@ -180,18 +180,47 @@ CREATE TABLE IF NOT EXISTS stock_history (
         ON UPDATE CASCADE
 );
 
-CREATE OR REPLACE VIEW stock_CV AS 
+CREATE TABLE IF NOT EXISTS stock_CV (
+    symbol VARCHAR(5) NOT NULL, 
+    CV REAL CHECK (CV >= 0) DEFAULT 0, 
+    PRIMARY KEY (symbol), 
+    FOREIGN KEY (symbol) REFERENCES stocks(symbol)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS stock_beta (
+    symbol VARCHAR(5) NOT NULL, 
+    beta REAL CHECK (-1 <= beta AND beta <= 1) DEFAULT 0, 
+    PRIMARY KEY (symbol), 
+    FOREIGN KEY (symbol) REFERENCES stocks(symbol)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE OR REPLACE FUNCTION refresh_stock_cache()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Recalculate changed stock CV(s)
+    DELETE FROM stock_CV WHERE symbol = NEW.symbol;
+    INSERT INTO 
+        stock_CV 
     SELECT
         symbol, 
         (STDDEV(close) / NULLIF(AVG(close), 0)) * 100 AS CV
     FROM
         stock_history
+    WHERE
+        symbol = NEW.symbol
     GROUP BY 
         symbol
     HAVING 
-        count(close) > 0;
+        COUNT(close) > 0;
 
-CREATE OR REPLACE VIEW stock_beta AS
+    -- Recalculate changed stock beta(s)
+    DELETE FROM stock_beta WHERE symbol = NEW.symbol;
+    INSERT INTO 
+        stock_beta
     WITH market_return AS (
         SELECT 
             timestamp,
@@ -209,8 +238,20 @@ CREATE OR REPLACE VIEW stock_beta AS
     JOIN 
         market_return mr ON 
         sh.timestamp = mr.timestamp
+    WHERE
+        symbol = NEW.symbol
     GROUP BY 
         sh.symbol;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Recalculate changed stock CV(s) and beta(s) on stock change
+CREATE OR REPLACE TRIGGER stock_cache_refresh
+AFTER INSERT OR UPDATE OR DELETE ON stock_history
+FOR EACH ROW
+EXECUTE FUNCTION refresh_stock_cache();
 
 CREATE TABLE IF NOT EXISTS stock_list_stocks (
     username TEXT NOT NULL,
@@ -227,46 +268,102 @@ CREATE TABLE IF NOT EXISTS stock_list_stocks (
     CHECK (amount > 0)
 );
 
-CREATE OR REPLACE VIEW portfolio_corr_mtx AS
-    WITH stock_returns AS (
-        SELECT 
-            sls.username,
-            sls.list_name,
-            sh.symbol,
-            sh.timestamp,
-            (
-                sh.close - 
-                LAG(sh.close) OVER (PARTITION BY sls.username, sls.list_name, sh.symbol ORDER BY sh.timestamp)) / 
-                NULLIF(LAG(sh.close) OVER (PARTITION BY sls.username, sls.list_name, sh.symbol ORDER BY sh.timestamp), 0
-            ) AS return
+CREATE TABLE IF NOT EXISTS portfolio_corr_mtx (
+    username TEXT NOT NULL,
+    list_name TEXT NOT NULL,
+    stock1 TEXT NOT NULL,
+    stock2 TEXT NOT NULL,
+    correlation REAL CHECK (-1 <= correlation AND correlation <= 1) DEFAULT 0,
+    PRIMARY KEY (username, list_name, stock1, stock2), 
+    FOREIGN KEY (username, list_name) REFERENCES stock_lists(username, list_name)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE, 
+    FOREIGN KEY (stock1) REFERENCES stocks(symbol)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE, 
+    FOREIGN KEY (stock2) REFERENCES stocks(symbol)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE OR REPLACE FUNCTION refresh_portfolio_cache()
+RETURNS TRIGGER AS $$
+DECLARE
+    affected_portfolio RECORD;
+BEGIN
+    -- For all affected portfolios...
+    FOR affected_portfolio IN 
+        SELECT DISTINCT 
+            username, 
+            list_name 
         FROM 
-            stock_history sh
+            stock_list_stocks 
+        WHERE 
+            username = COALESCE(OLD.username, NEW.username) AND 
+            list_name = COALESCE(OLD.list_name, NEW.list_name)
+    LOOP
+        -- Delete affected portfolios
+        DELETE FROM 
+            portfolio_corr_mtx 
+        WHERE 
+            username = affected_portfolio.username AND 
+            list_name = affected_portfolio.list_name;
+
+        -- Recalculate correlation matrices for affected portfolios
+        INSERT INTO 
+            portfolio_corr_mtx 
+        WITH stock_returns AS (
+            SELECT 
+                sls.username,
+                sls.list_name,
+                sh.symbol,
+                sh.timestamp,
+                (
+                    (sh.close - LAG(sh.close) OVER (PARTITION BY sls.username, sls.list_name, sh.symbol ORDER BY sh.timestamp)) / 
+                    NULLIF(LAG(sh.close) OVER (PARTITION BY sls.username, sls.list_name, sh.symbol ORDER BY sh.timestamp), 0)
+                ) AS return
+            FROM 
+                stock_history sh
+            JOIN 
+                stock_list_stocks sls ON 
+                sh.symbol = sls.symbol
+            WHERE 
+                sls.username = affected_portfolio.username AND 
+                sls.list_name = affected_portfolio.list_name
+        )
+        SELECT 
+            s1.username,
+            s1.list_name,
+            s1.symbol AS stock1,
+            s2.symbol AS stock2,
+            CORR(s1.return, s2.return) AS correlation
+        FROM 
+            stock_returns s1
         JOIN 
-            stock_list_stocks sls ON 
-            sh.symbol = sls.symbol
-    )
-    SELECT 
-        s1.username,
-        s1.list_name,
-        s1.symbol AS stock1,
-        s2.symbol AS stock2,
-        CORR(s1.return, s2.return) AS correlation
-    FROM 
-        stock_returns s1
-    JOIN 
-        stock_returns s2 ON 
-        s1.username = s2.username AND 
-        s1.list_name = s2.list_name AND 
-        s1.timestamp = s2.timestamp AND 
-        s1.symbol < s2.symbol
-    GROUP BY 
-        s1.username, 
-        s1.list_name, 
-        s1.symbol, 
-        s2.symbol
-    HAVING
-        COUNT(s1.return) > 0 AND 
-        COUNT(s2.return) > 0;
+            stock_returns s2 ON 
+            s1.username = s2.username AND 
+            s1.list_name = s2.list_name AND 
+            s1.timestamp = s2.timestamp AND 
+            s1.symbol < s2.symbol
+        GROUP BY 
+            s1.username, 
+            s1.list_name, 
+            s1.symbol, 
+            s2.symbol
+        HAVING
+            COUNT(s1.return) > 0 AND 
+            COUNT(s2.return) > 0;
+    END LOOP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Recalculate portfolio correlation matrices on portfolio change
+CREATE OR REPLACE TRIGGER portfolio_cache_refresh
+AFTER INSERT OR UPDATE OR DELETE ON stock_list_stocks
+FOR EACH ROW
+EXECUTE FUNCTION refresh_portfolio_cache();
 
 -- Update stock amount if the stock is already in the list
 CREATE OR REPLACE FUNCTION update_stock_amount()
