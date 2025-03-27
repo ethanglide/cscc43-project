@@ -198,6 +198,7 @@ CREATE TABLE IF NOT EXISTS stock_beta (
         ON UPDATE CASCADE
 );
 
+-- Refresh stock statistics (CV and beta)
 CREATE OR REPLACE FUNCTION refresh_stock_cache()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -268,6 +269,99 @@ CREATE TABLE IF NOT EXISTS stock_list_stocks (
     CHECK (amount > 0)
 );
 
+-- Update user cash when adding/removing stocks to/from a portfolio
+CREATE OR REPLACE FUNCTION update_portfolio_cash()
+RETURNS TRIGGER AS $$
+DECLARE
+    stock_price REAL;
+    old_cash REAL;
+    amt_diff INT;
+BEGIN
+    -- Get most recent stock price from stock_history
+        SELECT 
+            close INTO stock_price
+        FROM 
+            stock_history
+        WHERE 
+            symbol = COALESCE(NEW.symbol, OLD.symbol)
+        ORDER BY 
+            timestamp DESC -- Order by most recent close prices
+        LIMIT 1;           -- Get first record
+
+        -- Get current user cash
+        SELECT 
+            cash INTO old_cash
+        FROM 
+            stock_lists
+        WHERE 
+            username = COALESCE(NEW.username, OLD.username) AND 
+            list_name = COALESCE(NEW.list_name, OLD.list_name);
+
+    -- Upon adding a stock from a portfolio, subtract cash
+    IF TG_OP = 'INSERT' THEN
+        -- Check for sufficient funds
+        IF old_cash < (NEW.amount * stock_price) THEN
+            RAISE EXCEPTION 'Insufficient funds. Attempted to buy $% worth of stocks, but current cash is $%.', (NEW.amount * stock_price), old_cash;
+        END IF;
+
+        UPDATE 
+            stock_lists
+        SET 
+            cash = old_cash - (NEW.amount * stock_price)
+        WHERE 
+            username = NEW.username AND 
+            list_name = NEW.list_name;
+
+    -- Upon adding/remove an existing stock from a portfolio, adjust cash
+    ELSIF TG_OP = 'UPDATE' THEN 
+        amt_diff = NEW.amount - OLD.amount;
+
+        -- If buying more stocks, subtract cash
+        IF amt_diff > 0 THEN
+            -- Check for sufficient funds
+            IF old_cash < (amt_diff * stock_price) THEN
+                RAISE EXCEPTION 'Insufficient funds. Attempted to buy $% worth of additional stocks, but current cash is $%.', (amt_diff * stock_price), old_cash;
+            END IF;
+
+            UPDATE 
+                stock_lists
+            SET 
+                cash = old_cash - (amt_diff * stock_price)
+            WHERE 
+                username = NEW.username AND 
+                list_name = NEW.list_name;
+
+        -- If selling stocks, add cash
+        ELSIF amt_diff < 0 THEN
+            UPDATE 
+                stock_lists
+            SET 
+                cash = old_cash + (ABS(amt_diff) * stock_price)
+            WHERE 
+                username = NEW.username AND 
+                list_name = NEW.list_name;
+        END IF;
+
+    -- Upon removing a stock from a portfolio, add cash
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE 
+            stock_lists
+        SET 
+            cash = old_cash + (OLD.amount * stock_price)
+        WHERE 
+            username = OLD.username AND 
+            list_name = OLD.list_name;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER portfolio_cash_update
+AFTER INSERT OR UPDATE OR DELETE ON stock_list_stocks
+FOR EACH ROW
+EXECUTE FUNCTION update_portfolio_cash();
+
 CREATE TABLE IF NOT EXISTS portfolio_corr_mtx (
     username TEXT NOT NULL,
     list_name TEXT NOT NULL,
@@ -286,6 +380,7 @@ CREATE TABLE IF NOT EXISTS portfolio_corr_mtx (
         ON UPDATE CASCADE
 );
 
+-- Refresh portfolio statistics (correlation matrix)
 CREATE OR REPLACE FUNCTION refresh_portfolio_cache()
 RETURNS TRIGGER AS $$
 DECLARE
