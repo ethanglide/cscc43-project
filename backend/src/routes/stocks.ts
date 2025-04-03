@@ -6,4 +6,10 @@ const router = express.Router();
 
 router.get("/", StockValidator.getStocks, StockController.getStocks);
 
+router.get(
+  "/history",
+  StockValidator.getStockHistory,
+  StockController.getStockHistory
+);
+
 export default router;

@@ -4,6 +4,7 @@ import { UserContext } from "../context/user-context";
 import StocksApi, { StockResponse } from "../api/stocks-api";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import Modal from "../components/modal";
+import { Link } from "react-router";
 
 export default function StockListStocks({
   username,
@@ -125,7 +126,7 @@ export default function StockListStocks({
     setNewStockSymbol(newSymbol);
     setNewStockAmount(
       stockListStocks.find((stock) => stock.symbol === newSymbol)?.amount ||
-        newStockAmount,
+      newStockAmount,
     );
   }
 
@@ -165,7 +166,14 @@ export default function StockListStocks({
           <tbody>
             {stockListStocks.map((stock) => (
               <tr key={stock.symbol} className="hover:bg-base-200">
-                <td>{stock.symbol}</td>
+                <td>
+                  <Link
+                    to={`/stock/${stock.symbol}`}
+                    className="link link-hover"
+                  >
+                    {stock.symbol}
+                  </Link>
+                </td>
                 <td>{stock.amount}</td>
                 <td className="text-end">
                   {isOwner && (

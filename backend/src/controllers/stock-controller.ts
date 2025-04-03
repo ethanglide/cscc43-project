@@ -13,4 +13,19 @@ export default class StockController {
       res.status(500).json({ error: err });
     }
   }
+
+  static async getStockHistory(req: Request, res: Response) {
+    const { symbol, startDate, endDate } = req.query;
+
+    try {
+      const stockHistory = await StocksData.getStockHistory(
+        symbol as string,
+        startDate as string,
+        endDate as string
+      );
+      res.json(stockHistory);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
 }
