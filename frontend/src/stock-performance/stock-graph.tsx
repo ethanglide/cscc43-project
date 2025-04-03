@@ -60,7 +60,7 @@ export default function StockGraph({
   });
 
   return (
-    <div className="bg-slate-50 rounded-lg p-4 px-6 shadow-lg">
+    <div className="rounded-lg p-4 px-6 shadow-lg">
       <ResponsiveChartContainer
         height={500}
         series={series}
