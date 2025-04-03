@@ -126,7 +126,7 @@ export default function StockListStocks({
     setNewStockSymbol(newSymbol);
     setNewStockAmount(
       stockListStocks.find((stock) => stock.symbol === newSymbol)?.amount ||
-      newStockAmount,
+        newStockAmount,
     );
   }
 

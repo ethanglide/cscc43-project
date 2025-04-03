@@ -9,7 +9,7 @@ router.get("/", StockValidator.getStocks, StockController.getStocks);
 router.get(
   "/history",
   StockValidator.getStockHistory,
-  StockController.getStockHistory
+  StockController.getStockHistory,
 );
 
 export default router;

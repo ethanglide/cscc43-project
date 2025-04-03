@@ -10,7 +10,7 @@ const muiTheme = createTheme({
   colorSchemes: {
     dark: true,
   },
-})
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

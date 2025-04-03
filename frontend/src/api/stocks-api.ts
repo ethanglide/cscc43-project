@@ -29,9 +29,11 @@ export default class StocksApi {
   static async getStockHistory(
     symbol: string,
     startDate: string,
-    endDate: string
+    endDate: string,
   ) {
-    const response = await HttpClient.get(`/stocks/history?symbol=${symbol}&startDate=${startDate}&endDate=${endDate}`);
+    const response = await HttpClient.get(
+      `/stocks/history?symbol=${symbol}&startDate=${startDate}&endDate=${endDate}`,
+    );
     const data = await response.json();
 
     if (!response.ok) {

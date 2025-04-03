@@ -1,6 +1,16 @@
 import { AllSeriesType } from "@mui/x-charts/models";
 import { StockHistoryResponse } from "../api/stocks-api";
-import { axisClasses, BarPlot, ChartsAxisHighlight, ChartsTooltip, ChartsXAxis, ChartsYAxis, LineHighlightPlot, LinePlot, ResponsiveChartContainer } from "@mui/x-charts";
+import {
+  axisClasses,
+  BarPlot,
+  ChartsAxisHighlight,
+  ChartsTooltip,
+  ChartsXAxis,
+  ChartsYAxis,
+  LineHighlightPlot,
+  LinePlot,
+  ResponsiveChartContainer,
+} from "@mui/x-charts";
 
 export default function StockGraph({
   history,
@@ -10,7 +20,7 @@ export default function StockGraph({
   showHigh,
   showVolume,
 }: {
-  history: StockHistoryResponse[],
+  history: StockHistoryResponse[];
   showOpen: boolean;
   showClose: boolean;
   showLow: boolean;
@@ -19,57 +29,64 @@ export default function StockGraph({
 }) {
   const series: AllSeriesType[] = [];
 
-  showOpen && series.push({
-    type: 'line',
-    yAxisId: 'price',
-    color: 'blue',
-    label: 'Open',
-    data: history.map((day) => day.open),
-  });
+  showOpen &&
+    series.push({
+      type: "line",
+      yAxisId: "price",
+      color: "blue",
+      label: "Open",
+      data: history.map((day) => day.open),
+    });
 
-  showClose && series.push({
-    type: 'line',
-    yAxisId: 'price',
-    color: 'orange',
-    label: 'Close',
-    data: history.map((day) => day.close),
-  });
+  showClose &&
+    series.push({
+      type: "line",
+      yAxisId: "price",
+      color: "orange",
+      label: "Close",
+      data: history.map((day) => day.close),
+    });
 
-  showLow && series.push({
-    type: 'line',
-    yAxisId: 'price',
-    color: 'red',
-    label: 'Low',
-    data: history.map((day) => day.low),
-  });
+  showLow &&
+    series.push({
+      type: "line",
+      yAxisId: "price",
+      color: "red",
+      label: "Low",
+      data: history.map((day) => day.low),
+    });
 
-  showHigh && series.push({
-    type: 'line',
-    yAxisId: 'price',
-    color: 'green',
-    label: 'High',
-    data: history.map((day) => day.high),
-  });
+  showHigh &&
+    series.push({
+      type: "line",
+      yAxisId: "price",
+      color: "green",
+      label: "High",
+      data: history.map((day) => day.high),
+    });
 
-  showVolume && series.push({
-    type: 'bar',
-    yAxisId: 'volume',
-    label: 'Volume',
-    color: 'lightgray',
-    data: history.map((day) => day.volume),
-  });
+  showVolume &&
+    series.push({
+      type: "bar",
+      yAxisId: "volume",
+      label: "Volume",
+      color: "lightgray",
+      data: history.map((day) => day.volume),
+    });
 
   return (
     <div className="rounded-lg p-4 px-6 shadow-lg">
       <ResponsiveChartContainer
         height={500}
         series={series}
-        xAxis={[{
-          id: "date",
-          data: history.map((day) => new Date(day.timestamp)),
-          scaleType: "band",
-          valueFormatter: (value: Date) => value.toLocaleDateString(),
-        }]}
+        xAxis={[
+          {
+            id: "date",
+            data: history.map((day) => new Date(day.timestamp)),
+            scaleType: "band",
+            valueFormatter: (value: Date) => value.toLocaleDateString(),
+          },
+        ]}
         yAxis={[
           {
             id: "price",
@@ -105,7 +122,7 @@ export default function StockGraph({
           tickLabelStyle={{ fontSize: 10 }}
           sx={{
             [`& .${axisClasses.label}`]: {
-              transform: 'translateX(-5px)',
+              transform: "translateX(-5px)",
             },
           }}
         />
@@ -116,7 +133,7 @@ export default function StockGraph({
           tickLabelStyle={{ fontSize: 10 }}
           sx={{
             [`& .${axisClasses.label}`]: {
-              transform: 'translateX(5px)',
+              transform: "translateX(5px)",
             },
           }}
         />

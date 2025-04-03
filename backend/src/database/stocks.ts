@@ -24,7 +24,11 @@ export default class StocksData {
    * @param endDate end date in YYYY-MM-DD format
    * @returns stock history for the given symbol between the given dates
    */
-  static async getStockHistory(symbol: string, startDate: string, endDate: string) {
+  static async getStockHistory(
+    symbol: string,
+    startDate: string,
+    endDate: string,
+  ) {
     return sql<StockHistory[]>`
             SELECT symbol, timestamp, open, high, low, close, volume
             FROM stock_history

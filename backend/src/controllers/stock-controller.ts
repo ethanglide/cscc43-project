@@ -21,7 +21,7 @@ export default class StockController {
       const stockHistory = await StocksData.getStockHistory(
         symbol as string,
         startDate as string,
-        endDate as string
+        endDate as string,
       );
       res.json(stockHistory);
     } catch (err) {

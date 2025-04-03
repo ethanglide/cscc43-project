@@ -15,8 +15,12 @@ enum TimeInterval {
 export default function StockPerformance() {
   const { stock } = useParams();
   const [stockHistory, setStockHistory] = useState<StockHistoryResponse[]>([]);
-  const [timeInterval, setTimeInterval] = useState<TimeInterval>(TimeInterval.ALL);
-  const [endDate, setEndDate] = useState<string>(new Date().toISOString().substring(0, 10));
+  const [timeInterval, setTimeInterval] = useState<TimeInterval>(
+    TimeInterval.ALL,
+  );
+  const [endDate, setEndDate] = useState<string>(
+    new Date().toISOString().substring(0, 10),
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [showOpen, setShowOpen] = useState<boolean>(false);
   const [showClose, setShowClose] = useState<boolean>(true);
@@ -51,7 +55,11 @@ export default function StockPerformance() {
       return date.toISOString().substring(0, 10);
     })();
 
-    const response = await StocksApi.getStockHistory(stock as string, startDate, endDate);
+    const response = await StocksApi.getStockHistory(
+      stock as string,
+      startDate,
+      endDate,
+    );
 
     setLoading(false);
 
@@ -146,9 +154,9 @@ export default function StockPerformance() {
           </label>
         </fieldset>
       </div>
-      {loading ?
+      {loading ? (
         <span className="loading loading-xl loading-spinner"></span>
-        :
+      ) : (
         <StockGraph
           history={stockHistory}
           showOpen={showOpen}
@@ -157,7 +165,7 @@ export default function StockPerformance() {
           showHigh={showHigh}
           showVolume={showVolume}
         />
-      }
+      )}
     </div>
   );
 }
