@@ -40,6 +40,15 @@ psql -U postgres -d c43_project << EOF
     -- Re-enable stock stats trigger
     ALTER TABLE stock_history ENABLE TRIGGER stock_cache_refresh;
 
+    -- Manually re-compute each stock's stats by using trigger 'stock_cache_refresh'
+    WITH one_row_per_symbol AS (
+      SELECT DISTINCT ON (symbol) ctid, symbol
+      FROM stock_history
+    )
+    UPDATE stock_history
+    SET symbol = symbol  -- no-op update
+    WHERE ctid IN (SELECT ctid FROM one_row_per_symbol);
+
     COMMIT;
 EOF
 

@@ -201,9 +201,11 @@ CREATE TABLE IF NOT EXISTS stock_beta (
 -- Refresh stock statistics (CV and beta)
 CREATE OR REPLACE FUNCTION refresh_stock_cache()
 RETURNS TRIGGER AS $$
+DECLARE
+    affected_symbol VARCHAR(5) := COALESCE(NEW.symbol, OLD.symbol);
 BEGIN
     -- Recalculate changed stock CV(s)
-    DELETE FROM stock_CV WHERE symbol = NEW.symbol;
+    DELETE FROM stock_CV WHERE symbol = affected_symbol;
     INSERT INTO 
         stock_CV 
     SELECT
@@ -212,14 +214,14 @@ BEGIN
     FROM
         stock_history
     WHERE
-        symbol = NEW.symbol
+        symbol = affected_symbol
     GROUP BY 
         symbol
     HAVING 
         COUNT(close) > 0;
 
     -- Recalculate changed stock beta(s)
-    DELETE FROM stock_beta WHERE symbol = NEW.symbol;
+    DELETE FROM stock_beta WHERE symbol = affected_symbol;
     INSERT INTO 
         stock_beta
     WITH market_return AS (
@@ -240,7 +242,7 @@ BEGIN
         market_return mr ON 
         sh.timestamp = mr.timestamp
     WHERE
-        symbol = NEW.symbol
+        symbol = affected_symbol
     GROUP BY 
         sh.symbol;
 
@@ -276,26 +278,32 @@ DECLARE
     stock_price REAL;
     old_cash REAL;
     amt_diff INT;
+    list_type stock_list_type;
 BEGIN
-    -- Get most recent stock price from stock_history
-        SELECT 
-            close INTO stock_price
-        FROM 
-            stock_history
-        WHERE 
-            symbol = COALESCE(NEW.symbol, OLD.symbol)
-        ORDER BY 
-            timestamp DESC -- Order by most recent close prices
-        LIMIT 1;           -- Get first record
+    -- Get current user cash and list_type
+    SELECT 
+        cash, list_type INTO old_cash, list_type
+    FROM 
+        stock_lists
+    WHERE 
+        username = COALESCE(NEW.username, OLD.username) AND 
+        list_name = COALESCE(NEW.list_name, OLD.list_name);
 
-        -- Get current user cash
-        SELECT 
-            cash INTO old_cash
-        FROM 
-            stock_lists
-        WHERE 
-            username = COALESCE(NEW.username, OLD.username) AND 
-            list_name = COALESCE(NEW.list_name, OLD.list_name);
+    -- Trigger only on portfolios
+    IF list_type IS DISTINCT FROM 'portfolio' THEN
+        return NEW;
+    END IF;
+
+    -- Get most recent stock price from stock_history
+    SELECT 
+        close INTO stock_price
+    FROM 
+        stock_history
+    WHERE 
+        symbol = COALESCE(NEW.symbol, OLD.symbol)
+    ORDER BY 
+        timestamp DESC -- Order by most recent close prices
+    LIMIT 1;           -- Get first record
 
     -- Upon adding a stock from a portfolio, subtract cash
     IF TG_OP = 'INSERT' THEN
