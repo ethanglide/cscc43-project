@@ -8,6 +8,7 @@
 - [TailwindCSS](https://tailwindcss.com/) styling
 - [DaisyUI](https://daisyui.com/) component library
 - [ReactRouter](https://reactrouter.com/) routing
+- [MUI X Charts](https://mui.com/x/react-charts/) graphs
 
 ### Backend
 

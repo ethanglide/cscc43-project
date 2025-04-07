@@ -4,6 +4,7 @@ import { UserContext } from "../context/user-context";
 import StocksApi, { StockResponse } from "../api/stocks-api";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import Modal from "../components/modal";
+import { Link } from "react-router";
 
 export default function StockListStocks({
   username,
@@ -72,22 +73,23 @@ export default function StockListStocks({
     }
 
     // Either add the stock to the list or update the amount
-    if (!stockListStocks.find((stock) => stock.symbol === newStockSymbol)) {
-      setStockListStocks([
-        ...stockListStocks,
-        { symbol: newStockSymbol, amount: newStockAmount },
-      ]);
-    } else {
-      setStockListStocks(
-        stockListStocks.map((stock) => {
-          if (stock.symbol === newStockSymbol) {
-            return { ...stock, amount: newStockAmount };
-          }
+    // if (!stockListStocks.find((stock) => stock.symbol === newStockSymbol)) {
+    //   setStockListStocks([
+    //     ...stockListStocks,
+    //     { symbol: newStockSymbol, amount: newStockAmount },
+    //   ]);
+    // } else {
+    //   setStockListStocks(
+    //     stockListStocks.map((stock) => {
+    //       if (stock.symbol === newStockSymbol) {
+    //         return { ...stock, amount: newStockAmount };
+    //       }
 
-          return stock;
-        }),
-      );
-    }
+    //       return stock;
+    //     }),
+    //   );
+    // }
+    getAllStocks(); // Refresh the stock list
 
     setNewStockError("");
     setNewStockSymbol("");
@@ -145,6 +147,8 @@ export default function StockListStocks({
             <tr className="bg-base-200">
               <th>Symbol</th>
               <th>Amount</th>
+              <th>Beta</th>
+              <th>Coefficient of Variation</th>
               <th className="text-end">
                 {isOwner && (
                   <button
@@ -165,8 +169,17 @@ export default function StockListStocks({
           <tbody>
             {stockListStocks.map((stock) => (
               <tr key={stock.symbol} className="hover:bg-base-200">
-                <td>{stock.symbol}</td>
+                <td>
+                  <Link
+                    to={`/stock/${stock.symbol}`}
+                    className="link link-hover"
+                  >
+                    {stock.symbol}
+                  </Link>
+                </td>
                 <td>{stock.amount}</td>
+                <td>{stock.beta}</td>
+                <td>{stock.cv}</td>
                 <td className="text-end">
                   {isOwner && (
                     <button

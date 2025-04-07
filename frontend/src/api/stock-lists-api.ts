@@ -21,6 +21,13 @@ export interface PortfoliosResponse {
 export interface StockListStockResponse {
   symbol: string;
   amount: number;
+  beta: number;
+  cv: number;
+}
+
+export interface CorrelationMatrixResponse {
+  symbols: string[];
+  correlations: number[][];
 }
 
 export interface ReviewResponse {
@@ -105,6 +112,22 @@ export default class StockListsApi {
     }
 
     return data as StockListStockResponse[];
+  }
+
+  static async getCorrelationMatrix(
+    username: string,
+    listName: string,
+  ) {
+    const response = await HttpClient.get(
+      `/stock-lists/correlation-matrix?username=${username}&listName=${listName}`,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as CorrelationMatrixResponse;
   }
 
   static async createStockList(
