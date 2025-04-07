@@ -10,6 +10,9 @@ fi
 psql -U postgres -d c43_project << EOF
     BEGIN;
 
+    -- Do not calculate stock stats while loading stock data
+    ALTER TABLE stock_history DISABLE TRIGGER stock_cache_refresh;
+
     CREATE TABLE stock_data_temp (
         timestamp DATE,
         open REAL,
@@ -33,6 +36,9 @@ psql -U postgres -d c43_project << EOF
     ON CONFLICT (timestamp, symbol) DO NOTHING;
 
     DROP TABLE stock_data_temp;
+
+    -- Re-enable stock stats trigger
+    ALTER TABLE stock_history ENABLE TRIGGER stock_cache_refresh;
 
     COMMIT;
 EOF
