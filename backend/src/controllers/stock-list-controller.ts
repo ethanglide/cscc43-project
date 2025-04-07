@@ -42,6 +42,18 @@ export default class StockListController {
     }
   }
 
+  static async getCorrelationMatrix(req: Request, res: Response) {
+    const { username, listName } = req.query;
+
+    try {
+      const matrix = await StockListData.getCorrelationMatrix(username as string, listName as string);
+
+      res.json(matrix);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
   static async createStockList(req: Request, res: Response) {
     const username = res.locals.tokenData.username;
     const { listName, isPublic } = req.body;
@@ -82,13 +94,12 @@ export default class StockListController {
     const username = res.locals.tokenData.username;
     const { listName, symbol, amount } = req.body;
 
-    const stockListStock: StockListStock = { symbol, amount };
-
     try {
       await StockListData.addStockToStockList(
         username,
         listName,
-        stockListStock,
+        symbol,
+        amount,
       );
       res.json({ message: "Stock added to list" });
     } catch (err) {

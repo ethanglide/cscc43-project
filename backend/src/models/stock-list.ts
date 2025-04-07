@@ -19,4 +19,11 @@ export interface Portfolio {
 export interface StockListStock {
   symbol: string;
   amount: number;
+  beta: number;
+  CV: number;
+}
+
+export interface CorrelationMatrix {
+  symbols: string[];
+  correlations: number[][];
 }

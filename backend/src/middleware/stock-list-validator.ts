@@ -13,6 +13,11 @@ export default class StockListValidator {
     query("listName").trim().notEmpty().escape().isString(),
   ]);
 
+  static getCorrelationMatrix = validate([
+    query("username").trim().notEmpty().escape().isString(),
+    query("listName").trim().notEmpty().escape().isString(),
+  ]);
+
   static createStockList = validate([
     body("listName").trim().notEmpty().escape().isString(),
     body("isPublic").isBoolean(),

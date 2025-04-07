@@ -3,6 +3,7 @@ import { StockListsResponse, StockListType } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StockListStocks from "./stock-list-stocks";
 import StockListReviews from "./stock-list-reviews";
+import StockListCorrelations from "./stock-list-correlations";
 
 export default function StockListInfo({
   stockList,
@@ -39,6 +40,10 @@ export default function StockListInfo({
         />
         <div className="tab-content">
           <StockListStocks
+            username={stockList.username}
+            listName={stockList.list_name}
+          />
+          <StockListCorrelations
             username={stockList.username}
             listName={stockList.list_name}
           />
