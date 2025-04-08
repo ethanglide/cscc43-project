@@ -17,9 +17,14 @@ export default function PortfoliosPage() {
   const [newPortfolioName, setNewPortfolioName] = useState("");
   const [newPortfolioLoading, setNewPortfolioLoading] = useState(false);
   const [newPortfolioError, setNewPortfolioError] = useState("");
+  const [refresh, setRefresh] = useState(false);
 
   const createPortfolioModalId = "create-portfolio-modal";
   const deletePortfolioModalId = "delete-portfolio-modal";
+
+  function triggerRefresh() {
+    setRefresh(!refresh);
+  }
 
   async function createPortfolio() {
     if (!user) {
@@ -99,8 +104,9 @@ export default function PortfoliosPage() {
   }
 
   useEffect(() => {
+    console.log("Fetching portfolios");
     getPortfolios();
-  }, [user]);
+  }, [user, refresh]);
 
   useEffect(() => {
     if (portfolios.length === 0) {
@@ -179,6 +185,8 @@ export default function PortfoliosPage() {
           portfolios={portfolios}
           setPortfolios={setPortfolios}
           selectedIndex={selectedIndex}
+          refresh={refresh}
+          triggerRefresh={triggerRefresh}
         />
       )}
       <Modal id={createPortfolioModalId}>
