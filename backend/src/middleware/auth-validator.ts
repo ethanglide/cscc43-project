@@ -20,4 +20,6 @@ export default class AuthValidator {
     body("username").trim().notEmpty().escape().isString(),
     body("password").notEmpty().escape().isString(),
   ]);
+
+  static tokenTest = validate([]);
 }
