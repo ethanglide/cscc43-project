@@ -497,4 +497,69 @@ BEFORE INSERT ON stock_list_stocks
 FOR EACH ROW
 EXECUTE FUNCTION update_stock_amount();
 
+DO $$ BEGIN
+    CREATE TYPE date_unit AS ENUM ('day', 'month', 'year');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Predicts stock price for a given number of days/months/years. 
+-- Interval units are optional. Defaults to 'day'.
+-- Example usage: 
+--      SELECT * FROM predict_stock_price('AAPL', 10);          -- Predict AAPL stock prices 10 days. 
+--      SELECT * FROM predict_stock_price('AAPL', 10, 'day');   -- Equivalent to the above. 
+--      SELECT * FROM predict_stock_price('VTR', 3, 'month');   -- Predict VTR stock prices for 3 months. 
+--      SELECT * FROM predict_stock_price('AMZN', 100, 'year'); -- Predict AMZN stock prices for 100 years. 
+CREATE OR REPLACE FUNCTION predict_stock_price(
+    stock_symbol VARCHAR(5), 
+    num_intervals INTEGER, 
+    interval_unit date_unit DEFAULT 'day'
+)
+RETURNS TABLE (
+    symbol VARCHAR(5), 
+    date DATE, 
+    predicted_price REAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH numeric_dates AS (
+        SELECT 
+            close,
+            EXTRACT(EPOCH FROM timestamp) / 86400 AS date_ordinal
+        FROM 
+            stock_history
+        WHERE 
+            stock_history.symbol = stock_symbol
+    ),
+    regression AS (
+        SELECT 
+            REGR_SLOPE(close, date_ordinal) AS slope,
+            REGR_INTERCEPT(close, date_ordinal) AS intercept
+        FROM 
+            numeric_dates
+    ),
+    future_dates AS (
+        SELECT 
+            generate_series(CURRENT_DATE, 
+                            (CURRENT_DATE + (num_intervals || ' ' || interval_unit || 's')::INTERVAL)::date, 
+                            ('1 ' || interval_unit)::INTERVAL
+            )::date AS gen_date
+    ),
+    prediction_input AS (
+        SELECT 
+            EXTRACT(EPOCH FROM gen_date) / 86400 AS date_ordinal,
+            gen_date
+        FROM 
+            future_dates
+    )
+    SELECT 
+        stock_symbol AS symbol, 
+        p.gen_date AS date, 
+        (r.slope * p.date_ordinal + r.intercept)::REAL AS predicted_price
+    FROM 
+        regression r, 
+        prediction_input p;
+END;
+$$ LANGUAGE plpgsql;
+
 COMMIT;
