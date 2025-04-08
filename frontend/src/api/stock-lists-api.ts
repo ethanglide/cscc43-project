@@ -114,10 +114,7 @@ export default class StockListsApi {
     return data as StockListStockResponse[];
   }
 
-  static async getCorrelationMatrix(
-    username: string,
-    listName: string,
-  ) {
+  static async getCorrelationMatrix(username: string, listName: string) {
     const response = await HttpClient.get(
       `/stock-lists/correlation-matrix?username=${username}&listName=${listName}`,
     );

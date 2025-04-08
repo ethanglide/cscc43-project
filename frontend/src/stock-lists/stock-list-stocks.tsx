@@ -72,24 +72,7 @@ export default function StockListStocks({
       return;
     }
 
-    // Either add the stock to the list or update the amount
-    // if (!stockListStocks.find((stock) => stock.symbol === newStockSymbol)) {
-    //   setStockListStocks([
-    //     ...stockListStocks,
-    //     { symbol: newStockSymbol, amount: newStockAmount },
-    //   ]);
-    // } else {
-    //   setStockListStocks(
-    //     stockListStocks.map((stock) => {
-    //       if (stock.symbol === newStockSymbol) {
-    //         return { ...stock, amount: newStockAmount };
-    //       }
-
-    //       return stock;
-    //     }),
-    //   );
-    // }
-    getAllStocks(); // Refresh the stock list
+    getStockListStocks(); // Refresh the stock list
 
     setNewStockError("");
     setNewStockSymbol("");

@@ -11,3 +11,15 @@ export interface StockHistory {
   close: number;
   volume: number;
 }
+
+export interface StockPrediction {
+  symbol: string;
+  date: string;
+  predicted_price: number;
+}
+
+export enum PredictionIntervalUnit {
+  DAY = "day",
+  MONTH = "month",
+  YEAR = "year",
+}

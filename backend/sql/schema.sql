@@ -278,11 +278,11 @@ DECLARE
     stock_price REAL;
     old_cash REAL;
     amt_diff INT;
-    list_type stock_list_type;
+    curr_list_type stock_list_type;
 BEGIN
     -- Get current user cash and list_type
     SELECT 
-        cash, list_type INTO old_cash, list_type
+        cash, list_type INTO old_cash, curr_list_type
     FROM 
         stock_lists
     WHERE 
@@ -290,7 +290,7 @@ BEGIN
         list_name = COALESCE(NEW.list_name, OLD.list_name);
 
     -- Trigger only on portfolios
-    IF list_type IS DISTINCT FROM 'portfolio' THEN
+    IF curr_list_type IS DISTINCT FROM 'portfolio' THEN
         return NEW;
     END IF;
 

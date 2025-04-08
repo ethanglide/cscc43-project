@@ -39,14 +39,16 @@ export default function StockListInfo({
           defaultChecked
         />
         <div className="tab-content">
-          <StockListStocks
-            username={stockList.username}
-            listName={stockList.list_name}
-          />
-          <StockListCorrelations
-            username={stockList.username}
-            listName={stockList.list_name}
-          />
+          <div className="flex flex-col gap-6">
+            <StockListStocks
+              username={stockList.username}
+              listName={stockList.list_name}
+            />
+            <StockListCorrelations
+              username={stockList.username}
+              listName={stockList.list_name}
+            />
+          </div>
         </div>
         <input
           type="radio"

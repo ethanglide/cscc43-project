@@ -14,6 +14,12 @@ export interface StockHistoryResponse {
   volume: number;
 }
 
+export interface StockPredictionResponse {
+  symbol: string;
+  date: string;
+  predicted_price: number;
+}
+
 export default class StocksApi {
   static async getStocks() {
     const response = await HttpClient.get("/stocks");
@@ -41,5 +47,22 @@ export default class StocksApi {
     }
 
     return data as StockHistoryResponse[];
+  }
+
+  static async getStockPredictions(
+    symbol: string,
+    intervalCount: number,
+    unit: "day" | "month" | "year",
+  ) {
+    const response = await HttpClient.get(
+      `/stocks/predictions?symbol=${symbol}&intervalCount=${intervalCount}&unit=${unit}`,
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as StockPredictionResponse[];
   }
 }
