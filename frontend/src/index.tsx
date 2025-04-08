@@ -5,6 +5,7 @@ import { RouterProvider } from "react-router";
 import router from "./router";
 import { UserContextProvider } from "./context/user-context";
 import { createTheme, ThemeProvider } from "@mui/material";
+import { CookiesProvider } from "react-cookie";
 
 const muiTheme = createTheme({
   colorSchemes: {
@@ -14,10 +15,12 @@ const muiTheme = createTheme({
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider theme={muiTheme}>
-      <UserContextProvider>
-        <RouterProvider router={router} />
-      </UserContextProvider>
-    </ThemeProvider>
+    <CookiesProvider>
+      <ThemeProvider theme={muiTheme}>
+        <UserContextProvider>
+          <RouterProvider router={router} />
+        </UserContextProvider>
+      </ThemeProvider>
+    </CookiesProvider>
   </StrictMode>,
 );

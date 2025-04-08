@@ -9,9 +9,11 @@ import { Link } from "react-router";
 export default function StockListStocks({
   username,
   listName,
+  triggerRefresh,
 }: {
   username: string;
   listName: string;
+  triggerRefresh: () => void;
 }) {
   const { user } = useContext(UserContext);
   const [allStocks, setAllStocks] = useState<StockResponse[]>([]);
@@ -73,6 +75,7 @@ export default function StockListStocks({
     }
 
     getStockListStocks(); // Refresh the stock list
+    triggerRefresh(); // Refresh the parent component
 
     setNewStockError("");
     setNewStockSymbol("");
@@ -103,6 +106,7 @@ export default function StockListStocks({
     setStockListStocks(
       stockListStocks.filter((stock) => stock.symbol !== symbol),
     );
+    triggerRefresh();
   }
 
   function handleSetNewStockSymbol(symbol: string) {

@@ -33,4 +33,15 @@ export class AuthApi {
 
     return data as LoginUserResponse;
   }
+
+  static async tokenTest(token: string) {
+    const response = await HttpClient.get("/auth/test", token);
+    const data = await response.json();
+
+    if (!response.ok) {
+      return data as ErrorResponse;
+    }
+
+    return data as MessageResponse;
+  }
 }

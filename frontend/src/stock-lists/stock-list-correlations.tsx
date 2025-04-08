@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import StockListsApi, {
   CorrelationMatrixResponse,
 } from "../api/stock-lists-api";
-import { FiRefreshCw } from "react-icons/fi";
 
 export default function StockListCorrelations({
   username,
   listName,
+  refresh,
 }: {
   username: string;
   listName: string;
+  refresh: boolean;
 }) {
   const [correlationMatrix, setCorrelationMatrix] =
     useState<CorrelationMatrixResponse>();
@@ -30,7 +31,7 @@ export default function StockListCorrelations({
 
   useEffect(() => {
     getCorrelationMatrix();
-  }, [username, listName]);
+  }, [username, listName, refresh]);
 
   if (!correlationMatrix) {
     return <div className="text-center">Loading...</div>;
@@ -41,14 +42,7 @@ export default function StockListCorrelations({
       <table className="table table-pin-rows table-pin-cols">
         <thead>
           <tr className="bg-base-200">
-            <th className="bg-base-200">
-              <button
-                onClick={() => getCorrelationMatrix()}
-                className="btn btn-circle btn-ghost"
-              >
-                <FiRefreshCw />
-              </button>
-            </th>
+            <th className="bg-base-200"></th>
             {correlationMatrix?.symbols.map((symbol, index) => (
               <th className="bg-base-200" key={index}>
                 {symbol}
