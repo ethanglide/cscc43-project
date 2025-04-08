@@ -44,6 +44,12 @@ router.get(
   StockListController.getStockListStocks,
 );
 
+router.get(
+  "/correlation-matrix",
+  StockListValidator.getCorrelationMatrix,
+  StockListController.getCorrelationMatrix,
+);
+
 router.post(
   "/create",
   authenticate,

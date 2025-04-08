@@ -1,5 +1,6 @@
 import { Review } from "../models/review";
 import {
+  CorrelationMatrix,
   Portfolio,
   StockList,
   StockListStock,
@@ -50,11 +51,68 @@ export default class StockListData {
   static async getStockListStocks(username: string, listName: string) {
     return sql<StockListStock[]>`
             SELECT
-                symbol, amount
+                stock_list_stocks.symbol, amount, beta, CV
             FROM stock_list_stocks
+              JOIN stock_beta ON stock_list_stocks.symbol = stock_beta.symbol
+              JOIN stock_CV ON stock_list_stocks.symbol = stock_CV.symbol
             WHERE
                 username = ${username} AND list_name = ${listName}
         `;
+  }
+
+  static async getCorrelationMatrix(username: string, listName: string) {
+    const response = await sql<{ result: CorrelationMatrix }[]>`
+            WITH stocks AS (
+              SELECT DISTINCT stock1 AS stock
+              FROM portfolio_corr_mtx
+              WHERE username = ${username} AND list_name = ${listName}
+              UNION
+              SELECT DISTINCT stock2 AS stock
+              FROM portfolio_corr_mtx
+              WHERE username = ${username} AND list_name = ${listName}
+            ),
+            pairs AS (
+              SELECT stock1, stock2, correlation
+              FROM portfolio_corr_mtx
+              WHERE username = ${username} AND list_name = ${listName}
+              UNION
+              SELECT stock2 AS stock1, stock1 AS stock2, correlation
+              FROM portfolio_corr_mtx
+              WHERE username = ${username} AND list_name = ${listName}
+            ),
+            diagonal AS (
+              SELECT stock AS stock1, stock AS stock2, 1.0 AS correlation
+              FROM stocks
+            ),
+            full_matrix AS (
+              SELECT * FROM pairs
+              UNION
+              SELECT * FROM diagonal
+            ),
+            matrix_rows AS (
+              SELECT s1.stock AS row_stock,
+                    json_agg(coalesce(f.correlation, 1.0) ORDER BY s2.stock) AS correlations
+              FROM stocks s1
+              CROSS JOIN stocks s2
+              LEFT JOIN full_matrix f ON f.stock1 = s1.stock AND f.stock2 = s2.stock
+              GROUP BY s1.stock
+              ORDER BY s1.stock
+            )
+            SELECT 
+              json_build_object(
+                'symbols', (SELECT json_agg(stock ORDER BY stock) FROM stocks),
+                'correlations', (SELECT json_agg(correlations) FROM matrix_rows)
+              ) AS result;
+      `;
+
+    if (response.length === 0) {
+      return { symbols: [], correlations: [] };
+    }
+
+    const { result } = response[0];
+    !result.symbols && (result.symbols = []);
+    !result.correlations && (result.correlations = []);
+    return result;
   }
 
   /**
@@ -107,18 +165,20 @@ export default class StockListData {
    * Add stock to a stock list
    * @param username the username of the user
    * @param listName the name of the stock list
-   * @param stockListStock the stock to add to the stock list
+   * @param symbol the symbol of the stock to add
+   * @param amount the amount of the stock to add
    */
   static async addStockToStockList(
     username: string,
     listName: string,
-    stockListStock: StockListStock,
+    symbol: string,
+    amount: number,
   ) {
     await sql`
             INSERT INTO stock_list_stocks
                 (username, list_name, symbol, amount)
             VALUES
-                (${username}, ${listName}, ${stockListStock.symbol}, ${stockListStock.amount})
+                (${username}, ${listName}, ${symbol}, ${amount})
         `;
   }
 

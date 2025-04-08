@@ -12,4 +12,10 @@ router.get(
   StockController.getStockHistory,
 );
 
+router.get(
+  "/predictions",
+  StockValidator.getStockPredictions,
+  StockController.getStockPredictions,
+);
+
 export default router;

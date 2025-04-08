@@ -72,23 +72,7 @@ export default function StockListStocks({
       return;
     }
 
-    // Either add the stock to the list or update the amount
-    if (!stockListStocks.find((stock) => stock.symbol === newStockSymbol)) {
-      setStockListStocks([
-        ...stockListStocks,
-        { symbol: newStockSymbol, amount: newStockAmount },
-      ]);
-    } else {
-      setStockListStocks(
-        stockListStocks.map((stock) => {
-          if (stock.symbol === newStockSymbol) {
-            return { ...stock, amount: newStockAmount };
-          }
-
-          return stock;
-        }),
-      );
-    }
+    getStockListStocks(); // Refresh the stock list
 
     setNewStockError("");
     setNewStockSymbol("");
@@ -146,6 +130,8 @@ export default function StockListStocks({
             <tr className="bg-base-200">
               <th>Symbol</th>
               <th>Amount</th>
+              <th>Beta</th>
+              <th>Coefficient of Variation</th>
               <th className="text-end">
                 {isOwner && (
                   <button
@@ -175,6 +161,8 @@ export default function StockListStocks({
                   </Link>
                 </td>
                 <td>{stock.amount}</td>
+                <td>{stock.beta}</td>
+                <td>{stock.cv}</td>
                 <td className="text-end">
                   {isOwner && (
                     <button

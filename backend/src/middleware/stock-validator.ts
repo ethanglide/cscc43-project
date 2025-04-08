@@ -9,4 +9,10 @@ export default class StockValidator {
     query("startDate").trim().notEmpty().escape().isString(),
     query("endDate").trim().notEmpty().escape().isString(),
   ]);
+
+  static getStockPredictions = validate([
+    query("symbol").trim().notEmpty().escape().isString(),
+    query("intervalCount").trim().notEmpty().escape().isNumeric(),
+    query("unit").trim().escape().isString().isIn(["day", "month", "year"]),
+  ]);
 }

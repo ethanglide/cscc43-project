@@ -3,6 +3,7 @@ import { StockListsResponse, StockListType } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StockListStocks from "./stock-list-stocks";
 import StockListReviews from "./stock-list-reviews";
+import StockListCorrelations from "./stock-list-correlations";
 
 export default function StockListInfo({
   stockList,
@@ -38,10 +39,16 @@ export default function StockListInfo({
           defaultChecked
         />
         <div className="tab-content">
-          <StockListStocks
-            username={stockList.username}
-            listName={stockList.list_name}
-          />
+          <div className="flex flex-col gap-6">
+            <StockListStocks
+              username={stockList.username}
+              listName={stockList.list_name}
+            />
+            <StockListCorrelations
+              username={stockList.username}
+              listName={stockList.list_name}
+            />
+          </div>
         </div>
         <input
           type="radio"
