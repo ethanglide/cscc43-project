@@ -1,7 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import Layout from "./layout";
 import NotFound from "./not-found";
-import Home from "./home/home";
 import StockListPage from "./stock-lists/stock-list-page";
 import StockListBrowse from "./stock-lists/stock-list-browse";
 import SharedStockList from "./stock-lists/shared-stock-list";
@@ -20,15 +19,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Home />,
+        element: <StockListBrowse />,
       },
       {
         path: "stock-lists",
         element: <StockListPage />,
-      },
-      {
-        path: "browse",
-        element: <StockListBrowse />,
       },
       {
         path: "stock-lists/:username/:listName",
