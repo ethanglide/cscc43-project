@@ -375,7 +375,6 @@ CREATE OR REPLACE FUNCTION update_stock_history()
 RETURNS TRIGGER AS $$
 DECLARE
     stock_price REAL;
-    current_volume INTEGER;
     current_date DATE := CURRENT_DATE;
 BEGIN
     -- Get most recent stock price from stock_history
@@ -409,39 +408,22 @@ BEGIN
             close = stock_price,
             high = GREATEST(high, stock_price),
             low = LEAST(low, stock_price),
-            volume = volume + (NEW.amount - OLD.amount)
+            volume = volume + ABS(NEW.amount - OLD.amount)
         WHERE 
             symbol = NEW.symbol AND 
             timestamp = current_date;
 
     ELSIF TG_OP = 'DELETE' THEN
-        -- Get current volume
-        SELECT 
-            volume INTO current_volume
-        FROM 
+        UPDATE 
             stock_history
+        SET
+            close = stock_price, 
+            high = GREATEST(high, stock_price), 
+            low = LEAST(low, stock_price), 
+            volume = volume + OLD.amount
         WHERE 
             symbol = OLD.symbol AND 
             timestamp = current_date;
-
-        -- If all stocks are sold, delete stock_history entry
-        IF current_volume - OLD.amount <= 0 THEN
-            DELETE FROM 
-                stock_history
-            WHERE 
-                symbol = OLD.symbol AND 
-                timestamp = current_date;
-        
-        -- Otherwise, subtract volume
-        ELSE
-            UPDATE 
-                stock_history
-            SET 
-                volume = volume - OLD.amount
-            WHERE 
-                symbol = OLD.symbol AND 
-                timestamp = current_date;
-        END IF;
     END IF;
 
     RETURN NEW;
