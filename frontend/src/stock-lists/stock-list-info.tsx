@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { StockListsResponse, StockListType } from "../api/stock-lists-api";
 import { UserContext } from "../context/user-context";
 import StockListStocks from "./stock-list-stocks";
@@ -11,7 +11,13 @@ export default function StockListInfo({
   stockList: StockListsResponse;
 }) {
   const { user } = useContext(UserContext);
+  const [refresh, setRefresh] = useState(false);
+
   const tabsName = "stock-list-tabs";
+
+  function triggerRefresh() {
+    setRefresh(!refresh);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -39,14 +45,18 @@ export default function StockListInfo({
           defaultChecked
         />
         <div className="tab-content">
-          <StockListStocks
-            username={stockList.username}
-            listName={stockList.list_name}
-          />
-          <StockListCorrelations
-            username={stockList.username}
-            listName={stockList.list_name}
-          />
+          <div className="flex flex-col gap-6">
+            <StockListStocks
+              username={stockList.username}
+              listName={stockList.list_name}
+              triggerRefresh={triggerRefresh}
+            />
+            <StockListCorrelations
+              username={stockList.username}
+              listName={stockList.list_name}
+              refresh={refresh}
+            />
+          </div>
         </div>
         <input
           type="radio"

@@ -7,10 +7,14 @@ export default function PortfolioInfo({
   portfolios,
   setPortfolios,
   selectedIndex,
+  refresh,
+  triggerRefresh,
 }: {
   portfolios: PortfoliosResponse[];
   setPortfolios: (portfolios: PortfoliosResponse[]) => void;
   selectedIndex: number;
+  refresh: boolean;
+  triggerRefresh: () => void;
 }) {
   const portfolio = portfolios[selectedIndex];
 
@@ -26,11 +30,13 @@ export default function PortfolioInfo({
       <StockListStocks
         username={portfolio.username}
         listName={portfolio.list_name}
+        triggerRefresh={triggerRefresh}
       />
       <h3 className="text-xl font-bold">Correlation Matrix</h3>
       <StockListCorrelations
         username={portfolio.username}
         listName={portfolio.list_name}
+        refresh={refresh}
       />
     </div>
   );

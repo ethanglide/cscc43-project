@@ -9,9 +9,11 @@ import { Link } from "react-router";
 export default function StockListStocks({
   username,
   listName,
+  triggerRefresh,
 }: {
   username: string;
   listName: string;
+  triggerRefresh: () => void;
 }) {
   const { user } = useContext(UserContext);
   const [allStocks, setAllStocks] = useState<StockResponse[]>([]);
@@ -72,24 +74,8 @@ export default function StockListStocks({
       return;
     }
 
-    // Either add the stock to the list or update the amount
-    // if (!stockListStocks.find((stock) => stock.symbol === newStockSymbol)) {
-    //   setStockListStocks([
-    //     ...stockListStocks,
-    //     { symbol: newStockSymbol, amount: newStockAmount },
-    //   ]);
-    // } else {
-    //   setStockListStocks(
-    //     stockListStocks.map((stock) => {
-    //       if (stock.symbol === newStockSymbol) {
-    //         return { ...stock, amount: newStockAmount };
-    //       }
-
-    //       return stock;
-    //     }),
-    //   );
-    // }
-    getAllStocks(); // Refresh the stock list
+    getStockListStocks(); // Refresh the stock list
+    triggerRefresh(); // Refresh the parent component
 
     setNewStockError("");
     setNewStockSymbol("");
@@ -120,6 +106,7 @@ export default function StockListStocks({
     setStockListStocks(
       stockListStocks.filter((stock) => stock.symbol !== symbol),
     );
+    triggerRefresh();
   }
 
   function handleSetNewStockSymbol(symbol: string) {

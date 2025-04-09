@@ -51,11 +51,22 @@ export default function StockListBrowse() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">Stock List Browse</h2>
-      <h3 className="text-xl font-bold">Shared With You</h3>
-      <StockListList lists={sharedLists} />
-      <h3 className="text-xl font-bold">Public</h3>
-      <StockListList lists={publicLists} />
+      {user && (
+        <>
+          <h3 className="text-2xl font-bold">Shared With You</h3>
+          {sharedLists.length > 0 ? (
+            <StockListList lists={sharedLists} />
+          ) : (
+            <p>No stock lists shared with you</p>
+          )}
+        </>
+      )}
+      <h3 className="text-2xl font-bold">Public Stock Lists</h3>
+      {publicLists.length > 0 ? (
+        <StockListList lists={publicLists} />
+      ) : (
+        <p>No public stock lists available</p>
+      )}
     </div>
   );
 }
@@ -77,7 +88,6 @@ function StockListList({ lists }: { lists: StockListsResponse[] }) {
             <p className="text-lg font-bold">{list.list_name}</p>
             <p className="">{list.username}</p>
           </div>
-          <p className="text-lg">Other stats coming soon (maybe)</p>
         </li>
       ))}
     </ul>

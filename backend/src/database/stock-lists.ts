@@ -60,10 +60,7 @@ export default class StockListData {
         `;
   }
 
-  static async getCorrelationMatrix(
-    username: string,
-    listName: string,
-  ) {
+  static async getCorrelationMatrix(username: string, listName: string) {
     const response = await sql<{ result: CorrelationMatrix }[]>`
             WITH stocks AS (
               SELECT DISTINCT stock1 AS stock

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import StocksData from "../database/stocks";
+import { PredictionIntervalUnit } from "../models/stock";
 
 /**
  * Controller for the stocks route
@@ -24,6 +25,21 @@ export default class StockController {
         endDate as string,
       );
       res.json(stockHistory);
+    } catch (err) {
+      res.status(500).json({ error: err });
+    }
+  }
+
+  static async getStockPredictions(req: Request, res: Response) {
+    const { symbol, intervalCount, unit } = req.query;
+
+    try {
+      const stockPredictions = await StocksData.getStockPredictions(
+        symbol as string,
+        parseInt(intervalCount as string),
+        unit as PredictionIntervalUnit,
+      );
+      res.json(stockPredictions);
     } catch (err) {
       res.status(500).json({ error: err });
     }

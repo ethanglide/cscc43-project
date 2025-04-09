@@ -1,4 +1,9 @@
-import { Stock, StockHistory } from "../models/stock";
+import {
+  PredictionIntervalUnit,
+  Stock,
+  StockHistory,
+  StockPrediction,
+} from "../models/stock";
 import sql from "./sql";
 
 /**
@@ -36,5 +41,23 @@ export default class StocksData {
               symbol = ${symbol} AND timestamp BETWEEN ${startDate} AND ${endDate}
             ORDER BY timestamp ASC
         `;
+  }
+
+  /**
+   * Get stock predictions for a stock
+   * @param symbol symbol of the stock
+   * @param intervalCount number of intervals to predict
+   * @param unit unit of time for the prediction (e.g., 'day', 'month', 'year')
+   * @returns stock predictions for the given symbol
+   */
+  static async getStockPredictions(
+    symbol: string,
+    intervalCount: number,
+    unit: PredictionIntervalUnit,
+  ) {
+    return sql<StockPrediction[]>`
+            SELECT symbol, date, predicted_price
+            FROM predict_stock_price(${symbol}, ${intervalCount}, ${unit})
+    `;
   }
 }

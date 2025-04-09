@@ -11,11 +11,11 @@ export default function ProfilePreview() {
 
 function ProfileInfo() {
   const navigate = useNavigate();
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
 
   function logout() {
-    // TODO - remove cookie
-    navigate(0);
+    setUser(null);
+    navigate("/");
   }
 
   return (

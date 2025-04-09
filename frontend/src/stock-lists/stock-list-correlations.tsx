@@ -1,12 +1,25 @@
 import { useEffect, useState } from "react";
-import StockListsApi, { CorrelationMatrixResponse } from "../api/stock-lists-api";
-import { FiRefreshCw } from "react-icons/fi";
+import StockListsApi, {
+  CorrelationMatrixResponse,
+} from "../api/stock-lists-api";
 
-export default function StockListCorrelations({ username, listName }: { username: string; listName: string }) {
-  const [correlationMatrix, setCorrelationMatrix] = useState<CorrelationMatrixResponse>();
+export default function StockListCorrelations({
+  username,
+  listName,
+  refresh,
+}: {
+  username: string;
+  listName: string;
+  refresh: boolean;
+}) {
+  const [correlationMatrix, setCorrelationMatrix] =
+    useState<CorrelationMatrixResponse>();
 
   async function getCorrelationMatrix() {
-    const response = await StockListsApi.getCorrelationMatrix(username, listName);
+    const response = await StockListsApi.getCorrelationMatrix(
+      username,
+      listName,
+    );
 
     if ("error" in response) {
       console.log(response.error);
@@ -18,7 +31,7 @@ export default function StockListCorrelations({ username, listName }: { username
 
   useEffect(() => {
     getCorrelationMatrix();
-  }, [username, listName]);
+  }, [username, listName, refresh]);
 
   if (!correlationMatrix) {
     return <div className="text-center">Loading...</div>;
@@ -29,23 +42,20 @@ export default function StockListCorrelations({ username, listName }: { username
       <table className="table table-pin-rows table-pin-cols">
         <thead>
           <tr className="bg-base-200">
-            <th className="bg-base-200">
-              <button
-                onClick={() => getCorrelationMatrix()}
-                className="btn btn-circle btn-ghost"
-              >
-                <FiRefreshCw />
-              </button>
-            </th>
+            <th className="bg-base-200"></th>
             {correlationMatrix?.symbols.map((symbol, index) => (
-              <th className="bg-base-200" key={index}>{symbol}</th>
+              <th className="bg-base-200" key={index}>
+                {symbol}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {correlationMatrix?.correlations.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              <th className="bg-base-200">{correlationMatrix.symbols[rowIndex]}</th>
+              <th className="bg-base-200">
+                {correlationMatrix.symbols[rowIndex]}
+              </th>
               {row.map((value, colIndex) => (
                 <td
                   key={colIndex}

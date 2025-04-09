@@ -62,4 +62,13 @@ export default class AuthController {
       res.status(500).json({ error: err });
     }
   }
+
+  /**
+   * Test if the token is valid.
+   * The middleware validator will check if the token is valid and not expired
+   * and if the request makes it to this controller, it means the token is valid.
+   */
+  static async tokenTest(req: Request, res: Response) {
+    res.json({ message: "Token is valid" });
+  }
 }

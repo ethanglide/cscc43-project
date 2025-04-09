@@ -46,7 +46,10 @@ export default class StockListController {
     const { username, listName } = req.query;
 
     try {
-      const matrix = await StockListData.getCorrelationMatrix(username as string, listName as string);
+      const matrix = await StockListData.getCorrelationMatrix(
+        username as string,
+        listName as string,
+      );
 
       res.json(matrix);
     } catch (err) {
