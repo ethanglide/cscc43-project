@@ -278,11 +278,12 @@ DECLARE
     stock_price REAL;
     old_cash REAL;
     amt_diff INT;
-    curr_list_type stock_list_type;
+    list_type stock_list_type;
 BEGIN
     -- Get current user cash and list_type
     SELECT 
-        cash, list_type INTO old_cash, curr_list_type
+        stock_lists.cash, stock_lists.list_type INTO 
+        old_cash, list_type
     FROM 
         stock_lists
     WHERE 
@@ -290,7 +291,7 @@ BEGIN
         list_name = COALESCE(NEW.list_name, OLD.list_name);
 
     -- Trigger only on portfolios
-    IF curr_list_type IS DISTINCT FROM 'portfolio' THEN
+    IF list_type IS DISTINCT FROM 'portfolio' THEN
         return NEW;
     END IF;
 
@@ -369,6 +370,70 @@ CREATE OR REPLACE TRIGGER portfolio_cash_update
 AFTER INSERT OR UPDATE OR DELETE ON stock_list_stocks
 FOR EACH ROW
 EXECUTE FUNCTION update_portfolio_cash();
+
+CREATE OR REPLACE FUNCTION update_stock_history()
+RETURNS TRIGGER AS $$
+DECLARE
+    stock_price REAL;
+    current_date DATE := CURRENT_DATE;
+BEGIN
+    -- Get most recent stock price from stock_history
+    SELECT 
+        close INTO stock_price
+    FROM 
+        stock_history
+    WHERE 
+        symbol = COALESCE(NEW.symbol, OLD.symbol)
+    ORDER BY 
+        timestamp DESC  -- Order by most recent close prices
+    LIMIT 1;            -- Get first record
+
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO stock_history 
+            (symbol, timestamp, open, high, low, close, volume)
+        VALUES 
+            (NEW.symbol, current_date, stock_price, stock_price, stock_price, stock_price, NEW.amount)
+        ON CONFLICT (symbol, timestamp) DO UPDATE   -- If (symbol, timestamp) pair already exists in stock_history, accumulate volume
+        SET
+            open = LEAST(stock_history.open, stock_price),
+            high = GREATEST(stock_history.high, stock_price),
+            low = LEAST(stock_history.low, stock_price),
+            close = stock_price,
+            volume = stock_history.volume + EXCLUDED.volume;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        UPDATE 
+            stock_history
+        SET
+            close = stock_price,
+            high = GREATEST(high, stock_price),
+            low = LEAST(low, stock_price),
+            volume = volume + ABS(NEW.amount - OLD.amount)
+        WHERE 
+            symbol = NEW.symbol AND 
+            timestamp = current_date;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE 
+            stock_history
+        SET
+            close = stock_price, 
+            high = GREATEST(high, stock_price), 
+            low = LEAST(low, stock_price), 
+            volume = volume + OLD.amount
+        WHERE 
+            symbol = OLD.symbol AND 
+            timestamp = current_date;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER stock_history_update
+AFTER INSERT OR UPDATE OR DELETE ON stock_list_stocks
+FOR EACH ROW
+EXECUTE FUNCTION update_stock_history();
 
 CREATE TABLE IF NOT EXISTS portfolio_corr_mtx (
     username TEXT NOT NULL,
