@@ -376,6 +376,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     stock_price REAL;
     current_date DATE := CURRENT_DATE;
+    list_type stock_list_type;
 BEGIN
     -- Get most recent stock price from stock_history
     SELECT 
@@ -387,6 +388,20 @@ BEGIN
     ORDER BY 
         timestamp DESC  -- Order by most recent close prices
     LIMIT 1;            -- Get first record
+
+    -- Get current list_type
+    SELECT 
+        stock_lists.list_type INTO list_type
+    FROM 
+        stock_lists
+    WHERE 
+        username = COALESCE(NEW.username, OLD.username) AND 
+        list_name = COALESCE(NEW.list_name, OLD.list_name);
+
+    -- Trigger only on portfolios
+    IF list_type IS DISTINCT FROM 'portfolio' THEN
+        return NEW;
+    END IF;
 
     IF TG_OP = 'INSERT' THEN
         INSERT INTO stock_history 
