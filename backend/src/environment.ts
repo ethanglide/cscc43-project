@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 interface Environment {
-  readonly NODE_ENV: string;
   readonly PORT: number;
   readonly DB_USER: string;
   readonly DB_PASSWORD: string;
@@ -15,7 +14,6 @@ interface Environment {
 }
 
 const environment: Environment = {
-  NODE_ENV: process.env.NODE_ENV as string,
   PORT: parseInt(process.env.PORT as string) || 3000,
   DB_USER: process.env.DB_USER as string,
   DB_PASSWORD: process.env.DB_PASSWORD as string,
